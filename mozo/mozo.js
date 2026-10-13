@@ -4,7 +4,7 @@
   var L = window.LN, U = window.U, E = U.esc, $ = function (i) { return document.getElementById(i); };
   var TOKEN = '';                                                            // token de ESTE dispositivo (QR del día + nombre), ver comun/equipo.js
   var selCobro = {};
-  var D = null, tab = L.leerLocal('ln_mozo_tab', 'mesas'), mesa = 0, carrito = {}, notas = '', cobrando = '', mute = false, listos = null, aviso = '', red = '';
+  var D = null, tab = L.leerLocal('ln_mozo_tab', 'mesas'), mesa = 0, carrito = {}, varsM = {}, notas = '', cobrando = '', mute = false, listos = null, aviso = '', red = '';
   var persona = '';
   var ETQ = { solicitado: 'En cola', en_cocina: 'En cocina', listo: 'LISTO · llévalo', entregado: 'Servido' };
 
@@ -34,7 +34,7 @@
     if (!D.menu.length) s += '<div class="suave">Hoy no hay platos habilitados en el menú.</div>';
     D.menu.forEach(function (p) {
       var c = carrito[p.id] || 0, agotado = p.disponibles !== null && p.disponibles <= 0;
-      s += '<div class="m-plato"><div><div class="n">' + E(p.nombre) + '</div><div class="p">' + U.clp(p.precio) + (p.disponibles !== null ? ' · quedan ' + p.disponibles : '') + '</div></div><div class="m-cant"><button data-q="-1" data-p="' + p.id + '" aria-label="Quitar">−</button><b>' + c + '</b><button data-q="1" data-p="' + p.id + '"' + (agotado ? ' disabled' : '') + ' aria-label="Agregar">+</button></div></div>';
+      s += '<div class="m-plato"><div><div class="n">' + E(p.nombre) + '</div><div class="p">' + U.clp(p.precio) + (p.disponibles !== null ? ' · quedan ' + p.disponibles : '') + '</div></div><div class="m-cant"><button data-q="-1" data-p="' + p.id + '" aria-label="Quitar">−</button><b>' + c + '</b><button data-q="1" data-p="' + p.id + '"' + (agotado ? ' disabled' : '') + ' aria-label="Agregar">+</button></div></div>' + (c ? U.varHtml(p, c, varsM[p.id]) : '');
     });
     s += '<label class="campo" style="margin-top:10px">Nota para cocina (opcional)<input id="notas" maxlength="300" value="' + E(notas) + '" placeholder="Sin cebolla, alergias…"></label></div>';
     return s;
@@ -107,20 +107,21 @@
   document.addEventListener('input', function (e) {
     if (e.target.id === 'notas') notas = e.target.value;
   });
+  document.addEventListener('change', function (e) { var v = e.target.dataset && e.target.dataset.var; if (v) U.varSet(varsM, v, e.target.value); });
   document.addEventListener('click', function (e) {
     var t = e.target, b;
     if (t.closest('#turno')) { if (window.confirm('¿Cerrar tu turno en este dispositivo? Para volver a entrar hay que escanear el QR del día.')) { clearInterval(timer); window.LNEquipo.olvidar(arrancar); } return; }
     if ((b = t.closest('[data-tab]'))) { tab = b.dataset.tab; L.guardarLocal('ln_mozo_tab', tab); pintar(); return; }
-    if ((b = t.closest('[data-mesa]'))) { var id = +b.dataset.mesa; if (mesa !== id) { mesa = id; carrito = {}; notas = ''; } pintar(); return; }
+    if ((b = t.closest('[data-mesa]'))) { var id = +b.dataset.mesa; if (mesa !== id) { mesa = id; carrito = {}; varsM = {}; notas = ''; } pintar(); return; }
     if (t.closest('[data-liberar]')) { if (window.confirm('¿El cliente se fue sin pedir? La mesa queda libre.')) accion('/api/pantalla/mesa-liberar', { mesa_id: mesa }, 'Mesa liberada'); return; }
     if (t.closest('[data-limpia]')) { if (nombreOk()) accion('/api/pantalla/mesa-limpia', { mesa_id: mesa }, 'Mesa disponible'); return; }
     if ((b = t.closest('[data-llegada]'))) { if (nombreOk()) accion('/api/pantalla/mesa-llegada', { mesa_id: mesa, anular: b.dataset.llegada === 'anular' }, b.dataset.llegada === 'anular' ? 'Llegada anulada' : 'Mesa esperando pedido'); return; }
     if ((b = t.closest('[data-q]'))) { var p = b.dataset.p; carrito[p] = Math.max(0, (carrito[p] || 0) + (+b.dataset.q)); if (!carrito[p]) delete carrito[p]; pintar(); return; }
     if (t.closest('#enviar')) {
       if (!nombreOk() || !cuantos()) return;
-      var items = Object.keys(carrito).map(function (k) { return { plato_id: +k, cantidad: carrito[k] }; });
+      var items = Object.keys(carrito).map(function (k) { var pl = (D.menu || []).filter(function (x) { return String(x.id) === k; })[0]; return { plato_id: +k, cantidad: carrito[k], nota: pl ? U.varNota(pl, carrito[k], varsM[k]) : '' }; });
       t.closest('#enviar').disabled = true;
-      accion('/api/pantalla/mesa-pedido', { mesa_id: mesa, items: items, notas: notas }, 'Enviado a cocina').then(function (r) { if (r.ok) { carrito = {}; notas = ''; mesa = 0; tab = 'pedidos'; pintar(); } else pintar(); });
+      accion('/api/pantalla/mesa-pedido', { mesa_id: mesa, items: items, notas: notas }, 'Enviado a cocina').then(function (r) { if (r.ok) { carrito = {}; varsM = {}; notas = ''; mesa = 0; tab = 'pedidos'; pintar(); } else pintar(); });
       return;
     }
     if ((b = t.closest('[data-servir]'))) { if (nombreOk()) accion('/api/pantalla/transicion', { pedido_id: b.dataset.servir, a: 'entregado' }, 'Servido en la mesa'); return; }

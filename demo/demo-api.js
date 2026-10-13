@@ -151,7 +151,7 @@
       por_pagar: ps.reduce(function (a, p) { return a + p.total; }, 0) };
   }
   function crearPedido(b) {
-    var menu = D.get['/api/menu'].platos, items = (b.items || []).map(function (i) { var p = menu.filter(function (x) { return x.id === i.plato_id; })[0] || menu[0]; return { plato_id: p.id, nombre: p.nombre, cantidad: i.cantidad, nota: i.nota || '', precio: p.precio }; });
+    var menu = D.get['/api/menu'].platos, items = (b.items || []).map(function (i) { var p = menu.filter(function (x) { return x.id === i.plato_id; })[0] || menu[0]; return { plato_id: p.id, nombre: p.nombre, cantidad: i.cantidad, nota: i.nota || '', precio: (b.mesa_codigo && p.precio_mesa != null) ? p.precio_mesa : p.precio }; });
     var sub = items.reduce(function (a, i) { return a + i.precio * i.cantidad; }, 0), env = b.tipo === 'domicilio' ? D.get['/api/menu'].local.costo_despacho : 0;
     var p = { id: uid(), numero: null, estado: 'pendiente_pago', origen: 'app', tipo: b.tipo, mesa: null, nombre_cliente: b.nombre || 'Cliente demo', telefono: b.telefono || '', direccion: b.direccion || '',
       referencia: b.referencia || '', notas: '', total: sub + env, items: items.map(function (i) { return { plato_id: i.plato_id, nombre: i.nombre, cantidad: i.cantidad, nota: i.nota }; }), pagado: true,
@@ -235,7 +235,7 @@
     }
     if (ruta === '/api/pantalla/mesa-pedido') {
       var me = D.pantalla[4].mesas.filter(function (x) { return x.id === b.mesa_id; })[0], menu = D.pantalla[4].menu;
-      var its = (b.items || []).map(function (i) { var pl = menu.filter(function (x) { return x.id === i.plato_id; })[0]; return { plato_id: pl.id, nombre: pl.nombre, cantidad: i.cantidad, nota: i.nota || '', precio: pl.precio }; });
+      var its = (b.items || []).map(function (i) { var pl = menu.filter(function (x) { return x.id === i.plato_id; })[0]; return { plato_id: pl.id, nombre: pl.nombre, cantidad: i.cantidad, nota: i.nota || '', precio: pl.precio_mesa != null ? pl.precio_mesa : pl.precio }; });
       var np = { id: uid(), numero: ++S.siguiente, estado: 'solicitado', origen: 'mesa', tipo: 'retiro', mesa: { numero: me.numero, zona: me.zona }, nombre_cliente: 'Mesa ' + me.numero, telefono: '', direccion: '', referencia: '',
         notas: b.notas || '', total: its.reduce(function (a, i) { return a + i.precio * i.cantidad; }, 0), items: its.map(function (i) { return { plato_id: i.plato_id, nombre: i.nombre, cantidad: i.cantidad, nota: i.nota }; }),
         pagado: false, cobrado_por: null, cobro_medio: null, mozo_toma: quien, mozo_entrega: null, repartidor: null, solicitado_en: ahora(), cocina_en: null, listo_en: null, ruta_en: null, entregado_en: null, codigo: codigo(), codigo_ruta: null };

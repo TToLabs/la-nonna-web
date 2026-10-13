@@ -23,7 +23,9 @@
   var plato = function (id) { return platos().filter(function (p) { return p.id === +id; })[0]; };
   var maxDe = function (p) { return p.disponibles == null ? 99 : p.disponibles; };
   var nItems = function () { return Object.keys(S.carrito).reduce(function (s, k) { return s + S.carrito[k].c; }, 0); };
-  var subtotal = function () { return Object.keys(S.carrito).reduce(function (s, k) { var p = plato(k); return s + (p ? p.precio * S.carrito[k].c : 0); }, 0); };
+  // En la mesa rige el precio de mesa (si el plato lo tiene); para llevar o enviar, el precio normal.
+  var precioDe = function (p) { return S.mesa && p.precio_mesa != null ? p.precio_mesa : p.precio; };
+  var subtotal = function () { return Object.keys(S.carrito).reduce(function (s, k) { var p = plato(k); return s + (p ? precioDe(p) * S.carrito[k].c : 0); }, 0); };
   var guardarCarrito = function () { L.guardarLocal('ln_c_carrito', { fecha: S.menu && S.menu.fecha, items: S.carrito }); };
   var digitos = function (s) { return String(s || '').replace(/\D/g, ''); };
 
@@ -154,7 +156,7 @@
     var p = platos().filter(function (x) { return x.destacado && !x.agotado; })[0]; if (!p) return '';
     var src = p.fotos && p.fotos.length ? imgUrl(p.fotos[0].url) : p.giro ? imgUrl(p.giro.ruta + '00.' + p.giro.ext) : ''; if (!src) return '';
     return '<article class="dest" data-act="detalle" data-id="' + p.id + '" role="button" tabindex="0" aria-label="Ver ' + E(p.nombre) + '"><img src="' + E(src) + '" alt="' + E(p.nombre) + '" loading="lazy"><div class="dest-in"><span class="pill pill-n">Plato destacado</span>' + (p.giro ? ' <span class="pill pill-g">360°</span>' : '') +
-      '<h3>' + E(p.nombre) + '</h3><div class="fila"><span class="precio num">' + U.clp(p.precio) + '</span>' + (abierto ? '<button class="btn btn-p btn-sm" data-act="mas" data-id="' + p.id + '">Agregar</button>' : '') + '</div></div></article>';
+      '<h3>' + E(p.nombre) + '</h3><div class="fila"><span class="precio num">' + U.clp(precioDe(p)) + '</span>' + (abierto ? '<button class="btn btn-p btn-sm" data-act="mas" data-id="' + p.id + '">Agregar</button>' : '') + '</div></div></article>';
   }
 
   /* ---------- MENÚ ---------- */
@@ -163,7 +165,7 @@
     var s = '<article class="card plato' + (p.agotado ? ' ago' : '') + '"><div class="foto" data-act="detalle" data-id="' + p.id + '" role="button" tabindex="0" aria-label="Ver ' + E(p.nombre) + '">' + foto(p) + '</div><div><h3>' + E(p.nombre) + (p.destacado ? ' <span class="pill pill-n">Destacado</span>' : '') + '</h3>';
     if (p.descripcion) s += '<p>' + E(p.descripcion) + '</p>';
     if (p.etiquetas_dieteticas) s += '<div class="etq">' + p.etiquetas_dieteticas.split(',').map(function (x) { return '<span class="pill pill-g">' + E(x.trim()) + '</span>'; }).join('') + '</div>';
-    s += '<div class="fila"><span class="precio num">' + U.clp(p.precio) + '</span>';
+    s += '<div class="fila"><span class="precio num">' + U.clp(precioDe(p)) + '</span>';
     if (p.agotado) s += '<span class="pill pill-err">Agotado</span>';
     else s += '<span class="step"><button data-act="menos" data-id="' + p.id + '" aria-label="Quitar uno" ' + (q ? '' : 'disabled') + '>−</button><span class="num" aria-live="polite">' + q + '</span><button data-act="mas" data-id="' + p.id + '" aria-label="Agregar uno" ' + (q >= max || !abierto ? 'disabled' : '') + '>+</button></span>';
     s += '</div>' + (p.disponibles != null && !p.agotado ? '<div style="margin-top:5px"><span class="pill ' + (p.disponibles <= 3 ? 'pill-warn' : 'pill-g') + '">Quedan ' + p.disponibles + '</span></div>' : '') + '</div></article>';
@@ -213,7 +215,7 @@
     s += '<div class="r-vaciar"><button class="quitar" data-act="vaciar">Vaciar pedido</button></div><div class="card" style="margin-bottom:12px">';
     ids.forEach(function (k) {
       var p = plato(k); if (!p) return;
-      s += '<div class="item-c"><div class="r1"><span>' + E(p.nombre) + '</span><span class="num">' + U.clp(p.precio * S.carrito[k].c) + '</span></div><div class="r2"><span class="step"><button data-act="menos" data-id="' + k + '" aria-label="Quitar uno">−</button><span class="num" aria-live="polite">' + S.carrito[k].c + '</span><button data-act="mas" data-id="' + k + '" aria-label="Agregar uno" ' + (S.carrito[k].c >= maxDe(p) ? 'disabled' : '') + '>+</button></span><button class="quitar" data-act="quitar" data-id="' + k + '">Quitar plato</button></div><input data-nota="' + k + '" placeholder="Nota para este plato (ej. sin cebolla)" value="' + E(S.carrito[k].nota || '') + '" maxlength="120" aria-label="Nota para ' + E(p.nombre) + '"></div>';
+      s += '<div class="item-c"><div class="r1"><span>' + E(p.nombre) + '</span><span class="num">' + U.clp(precioDe(p) * S.carrito[k].c) + '</span></div><div class="r2"><span class="step"><button data-act="menos" data-id="' + k + '" aria-label="Quitar uno">−</button><span class="num" aria-live="polite">' + S.carrito[k].c + '</span><button data-act="mas" data-id="' + k + '" aria-label="Agregar uno" ' + (S.carrito[k].c >= maxDe(p) ? 'disabled' : '') + '>+</button></span><button class="quitar" data-act="quitar" data-id="' + k + '">Quitar plato</button></div>' + U.varHtml(p, S.carrito[k].c, S.carrito[k].vars) + '<input data-nota="' + k + '" placeholder="Nota para este plato (ej. sin cebolla)" value="' + E(S.carrito[k].nota || '') + '" maxlength="120" aria-label="Nota para ' + E(p.nombre) + '"></div>';
     });
     if (S.mesa && S.mesaInfo && S.mesaInfo.cliente_pide) {
       s += '</div><div class="ok-bloque">🍽 Pedido para la <b>Mesa ' + S.mesaInfo.mesa.numero + '</b>: pagas con la app y te lo llevamos a la mesa.</div><div class="card"><div class="lin tot"><span>Total</span><span class="num">' + U.clp(sub) + '</span></div></div>';
@@ -245,7 +247,7 @@
     if (!enMesa && !validar()) { render(); U.toast('Revisa los datos marcados'); return; }
     S.enviando = true; render();
     L.guardarLocal('ln_c_datos', S.datos);
-    var items = Object.keys(S.carrito).map(function (k) { return { plato_id: +k, cantidad: S.carrito[k].c, nota: S.carrito[k].nota || '' }; });
+    var items = Object.keys(S.carrito).map(function (k) { var pl = plato(k), el = pl ? U.varNota(pl, S.carrito[k].c, S.carrito[k].vars) : ''; return { plato_id: +k, cantidad: S.carrito[k].c, nota: [el, S.carrito[k].nota || ''].filter(Boolean).join(' — ').slice(0, 300) }; });
     L.api('/api/pedidos', { metodo: 'POST', bearer: S.token, cuerpo: enMesa ? { mesa_codigo: S.mesa.codigo, nombre: S.cliente ? S.cliente.nombre : '', items: items } : { tipo: S.tipo, nombre: S.datos.nombre, telefono: S.datos.tel, direccion: S.datos.dir, referencia: S.datos.ref, items: items } }).then(function (r) {
       S.enviando = false;
       if (!r.ok) { U.toast(r.error); if (r.status === 409) cargarMenu(true); render(); return; }
@@ -383,7 +385,7 @@
     if (fs.length) s += '<div class="galeria"><img src="' + E(imgUrl(fs[k].url)) + '" alt="' + E(p.nombre) + ' (foto ' + (k + 1) + ' de ' + fs.length + ')">' + (fs.length > 1 ? '<button class="ant" data-act="foto" data-id="' + p.id + '" data-i="' + (k - 1) + '" aria-label="Foto anterior">‹</button><button class="sig" data-act="foto" data-id="' + p.id + '" data-i="' + (k + 1) + '" aria-label="Foto siguiente">›</button>' : '') + '</div>';
     else if (!p.giro) s += '<div style="display:grid;place-items:center;margin:8px 0">' + U.platoArte(p.id, 120) + '<p class="sub">Este plato aún no tiene foto.</p></div>';
     if (p.descripcion) s += '<p>' + E(p.descripcion) + '</p>';
-    s += '<div class="lin"><span class="suave">Precio</span><b class="num">' + U.clp(p.precio) + '</b></div>';
+    s += '<div class="lin"><span class="suave">Precio</span><b class="num">' + U.clp(precioDe(p)) + '</b></div>';
     if (p.tiempo_preparacion) s += '<div class="lin"><span class="suave">Preparación</span><span>' + p.tiempo_preparacion + ' min</span></div>';
     s += '<button class="btn btn-s btn-bloque" style="margin-top:10px" data-act="cerrarm">Cerrar</button>';
     if (S.visor) { S.visor.destruir(); S.visor = null; }
@@ -399,7 +401,7 @@
     firmaVista = firma();
   }
   function firma() {
-    if (S.tab === 'menu') return JSON.stringify([platos().map(function (p) { return [p.id, p.disponibles, p.precio]; }), local().pedidos_abiertos, S.carrito, S.verSemana, S.mesaInfo, !!S.cliente]);
+    if (S.tab === 'menu') return JSON.stringify([platos().map(function (p) { return [p.id, p.disponibles, precioDe(p)]; }), local().pedidos_abiertos, S.carrito, S.verSemana, S.mesaInfo, !!S.cliente]);
     if (S.tab === 'seguim') return JSON.stringify([S.pedido && [S.pedido.estado, S.pedido.numero, S.pedido.en_camino], S.pedidoId]);
     return 'x';
   }
@@ -442,6 +444,7 @@
     if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.act === 'detalle') { e.preventDefault(); detalle(e.target.dataset.id, 0); }
     if (e.key === 'Escape') cerrarModal();
   });
+  document.addEventListener('change', function (e) { var v = e.target.dataset && e.target.dataset.var; if (!v) return; var id = v.split('|')[0]; if (!S.carrito[id]) return; var m = {}; m[id] = S.carrito[id].vars || []; U.varSet(m, v, e.target.value); S.carrito[id].vars = m[id]; guardarCarrito(); });
   document.addEventListener('input', function (e) { var n = e.target.dataset && e.target.dataset.nota; if (n && S.carrito[n]) { S.carrito[n].nota = e.target.value; guardarCarrito(); } });
   document.addEventListener('submit', function (e) { var f = e.target.dataset && e.target.dataset.form; if (f) { e.preventDefault(); enviarForm(f); } });
 

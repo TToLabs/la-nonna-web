@@ -42,5 +42,28 @@
     var v = Number(min) || 0; if (v < 60) return (Math.round(v) === v ? v : String(Math.round(v * 10) / 10).replace('.', ',')) + ' min';
     var m = Math.round(v), h = Math.floor(m / 60), r = m % 60; return h + ' h' + (r ? ' ' + r + ' min' : '');
   }
-  w.U = { duracion: duracion, ZONAS: ZONAS, zonaNombre: zonaNombre, clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
+  /* Elecciones de un plato (las define el dueño): una línea por grupo, "Entrada: Ensalada, Consomé". Se elige una por unidad pedida. */
+  function parseVar(t) {
+    return String(t || '').split('\n').map(function (l) { var i = l.indexOf(':'); if (i < 1) return null; var o = l.slice(i + 1).split(',').map(function (x) { return x.trim(); }).filter(Boolean); return o.length ? { n: l.slice(0, i).trim(), o: o } : null; }).filter(Boolean);
+  }
+  function varHtml(p, c, vars) {
+    var g = parseVar(p.variantes); if (!g.length || !c) return '';
+    var s = '<div class="vars">';
+    for (var u = 0; u < c; u++) {
+      s += '<div class="vu">' + (c > 1 ? '<b>Menú ' + (u + 1) + '</b>' : '') + g.map(function (gr, gi) {
+        var sel = ((vars || [])[u] || [])[gi] || 0;
+        return '<label>' + esc(gr.n) + '<select data-var="' + p.id + '|' + u + '|' + gi + '">' + gr.o.map(function (o, oi) { return '<option value="' + oi + '"' + (oi === sel ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select></label>';
+      }).join('') + '</div>';
+    }
+    return s + '</div>';
+  }
+  function varNota(p, c, vars) {
+    var g = parseVar(p.variantes); if (!g.length) return '';
+    var out = [];
+    for (var u = 0; u < c; u++) out.push((c > 1 ? (u + 1) + ') ' : '') + g.map(function (gr, gi) { return gr.n + ': ' + gr.o[((vars || [])[u] || [])[gi] || 0]; }).join(' · '));
+    return out.join(' | ');
+  }
+  /* Guarda una elección en el mapa vars[platoId][unidad][grupo] a partir del valor "plato|unidad|grupo". */
+  function varSet(mapa, clave, valor) { var k = clave.split('|'); var a = (mapa[k[0]] = mapa[k[0]] || []); a[+k[1]] = a[+k[1]] || []; a[+k[1]][+k[2]] = +valor; }
+  w.U = { parseVar: parseVar, varHtml: varHtml, varNota: varNota, varSet: varSet, duracion: duracion, ZONAS: ZONAS, zonaNombre: zonaNombre, clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
 })(window);
