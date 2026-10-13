@@ -6,8 +6,8 @@
     control: null, tiempos: null, mesas: [], menu: null, desde: '', mute: false, ultimo: -1, firma: '', errorVista: '' };
   var NOM = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú' };
   // Menú ☰ de arriba: cada ítem abre su propia pantalla.
-  var AJUSTES = [['clave', 'Contraseña'], ['pantallas', 'Equipo y QR del día'], ['clientes', 'Clientes'], ['mesas', 'Mesas'], ['pedidos', 'Pedidos y despacho'], ['local', 'Datos del local'], ['fidelidad', 'Programa de fidelidad']];
-  var TIT = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú', clave: 'Contraseña', pantallas: 'Equipo', clientes: 'Clientes', mesas: 'Mesas', pedidos: 'Pedidos y despacho', local: 'Datos del local', fidelidad: 'Fidelidad' };
+  var AJUSTES = [['clave', 'Contraseña'], ['pantallas', 'Equipo y QR del día'], ['clientes', 'Clientes'], ['mesas', 'Mesas'], ['alertas', 'Alertas de mesas'], ['pedidos', 'Pedidos y despacho'], ['local', 'Datos del local'], ['fidelidad', 'Programa de fidelidad']];
+  var TIT = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú', clave: 'Contraseña', pantallas: 'Equipo', clientes: 'Clientes', mesas: 'Mesas', alertas: 'Alertas de mesas', pedidos: 'Pedidos y despacho', local: 'Datos del local', fidelidad: 'Fidelidad' };
   var IC = {
     tablero: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>',
     control: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
@@ -71,7 +71,7 @@
   }
   function pintar() {
     cabecera();
-    var f = { tablero: vTablero, control: vControl, dashboard: vDash, menu: vMenu, clientes: vClientes, pantallas: vPant, clave: vClave, local: vConfig, pedidos: vConfig, mesas: vConfig, fidelidad: vConfig }[S.vista];
+    var f = { tablero: vTablero, control: vControl, dashboard: vDash, menu: vMenu, clientes: vClientes, pantallas: vPant, clave: vClave, local: vConfig, pedidos: vConfig, mesas: vConfig, alertas: vConfig, fidelidad: vConfig }[S.vista];
     var aviso = S.claveProvisoria && S.vista !== 'clave' ? '<div class="info-bloque" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:200px"><b>Tu contraseña es provisoria.</b> Cámbiala por una tuya.</span><button class="btn btn-p btn-sm" data-v="clave">Cambiar ahora</button></div>' : '';
     var y = window.scrollY; $('pag').innerHTML = aviso + f(); window.scrollTo(0, y);
     if (aviso) document.querySelector('#pag [data-v="clave"]').onclick = function () { ir('clave'); };
@@ -178,6 +178,12 @@
       var NOMC = { verde: 'Libre', naranjo: 'Esperando / atendido', rojo: 'Demorada', lila: 'Comiendo', azul: 'Pagó · por limpiar' };
       var EST = { solicitado: 'En cola', en_cocina: 'En cocina', listo: 'Listo', entregado: 'Servido', cancelado: 'Cancelado' };
       var s = '<h3 class="titulo" style="font-size:26px;margin-bottom:4px">Mesa ' + m.numero + ' · ' + (m.zona === 'patio' ? 'Patio' : 'Comedor') + '</h3><div class="mapa-ley" style="margin-bottom:10px"><span class="mm-' + m.color + '">' + ((m.color === 'naranjo' || m.color === 'lila') && m.fase_texto ? m.fase_texto : NOMC[m.color]) + (m.color !== 'verde' ? ' · ' + m.minutos + ' min' : '') + '</span>' + (m.motivo ? '<span style="color:var(--texto)">' + E(m.motivo) + '</span>' : '') + '</div>';
+      if (m.alerta) {
+        s += '<div class="err-bloque" style="margin:0 0 10px"><b>⚠ Demorada: ' + E(m.alerta.proceso) + '</b><br>Lleva <b>' + m.alerta.minutos + ' min</b> en este proceso y el límite que fijaste es de <b>' + m.alerta.limite + ' min</b> (se pasó por ' + (m.alerta.minutos - m.alerta.limite) + ' min).' +
+          (m.fase === 'comiendo' ? '<br>Revisa si ya terminó y espera la cuenta, o si quiere pedir algo más (con un pedido nuevo el reloj parte de nuevo).' : '') + '</div>';
+      } else if (m.fase && m.fase !== 'libre' && m.limite > 0) {
+        s += '<div class="info-bloque" style="margin:0 0 10px">Va <b>' + m.minutos + ' min</b> en este proceso (' + E(m.fase_texto || '') + '); alerta a los ' + m.limite + ' min.</div>';
+      }
       s += '<h4 style="margin:8px 0 4px">Proceso de hoy</h4>' + (r.data.momentos.length ? '<ol class="linea-t">' + r.data.momentos.map(function (x, i, arr) {
         var dif = i ? Math.round((Date.parse(x.t) - Date.parse(arr[i - 1].t)) / 60000) : null;
         return '<li><b>' + hora(x.t) + '</b> ' + E(x.que) + (x.quien ? ' · <i>' + E(x.quien) + '</i>' : '') + (dif !== null ? ' <span class="suave">(+' + dif + ' min)</span>' : '') + '</li>';
@@ -549,6 +555,13 @@
     else if (sec === 'pedidos') s += sw('c_ab', c.pedidos_abiertos, 'Recibir pedidos ahora', 'Si lo apagas, el cliente ve “Cerrado”.') + sw('c_de', c.despacho_activo, 'Despacho a domicilio activo', '') +
       '<div class="dos-col"><label class="campo">Costo de despacho (CLP)<input id="c_cos" type="number" min="0" step="100" value="' + c.costo_despacho + '"></label><label class="campo">Pedido mínimo para despacho (CLP)<input id="c_min" type="number" min="0" step="100" value="' + c.pedido_minimo + '"></label></div><label class="campo">Zona de despacho (texto informativo)<input id="c_zona" value="' + E(c.zona_despacho) + '" maxlength="200"></label>';
     else if (sec === 'fidelidad') s += '<p class="suave" style="font-size:13px;margin:0 0 6px">El sistema ya registra por cliente sus pedidos, platos y monto. Aquí escribes la regla que verá el cliente (por ejemplo, qué se premia y cuándo). Los premios se aplican a mano por ahora.</p>' + sw('c_fid', c.fidelidad_activa, 'Mostrar el programa a los clientes', '') + '<label class="campo">Texto del programa<textarea id="c_fidtxt" rows="4" maxlength="500">' + E(c.fidelidad_descripcion) + '</textarea></label>';
+    else if (sec === 'alertas') s += '<p class="suave" style="font-size:13px;margin:0 0 8px">Cuántos minutos puede estar una mesa en cada proceso antes de ponerse <b>roja (Demorada)</b>. Cada proceso tiene su propio reloj. Pon <b>0</b> para no alertar en ese proceso. Al tocar una mesa roja se abre el reporte con el motivo y los tiempos.</p>' +
+      [['c_al_at', c.alerta_mesa_atencion, 'Sin ser atendida', 'Cliente sentado (o con el QR escaneado) y nadie toma su pedido.'],
+       ['c_al_co', c.alerta_mesa_cocina, 'Pedido en cocina', 'Hizo el pedido hace mucho y aún no está listo.'],
+       ['c_al_li', c.alerta_mesa_listo, 'Plato listo sin llevar', 'El plato está listo en cocina y no se ha llevado a la mesa.'],
+       ['c_al_cm', c.alerta_mesa_comiendo, 'Comiendo', 'Desde que se sirvió. Tiempo corto a propósito: avisa para ver si ya terminó, espera la cuenta o quiere pedir algo más. Si hace otro pedido, el reloj parte de nuevo.'],
+       ['c_al_ln', c.alerta_mesa_limpiar, 'Pagó y sin limpiar', 'Ya pagó y la mesa sigue sin quedar disponible.']].map(function (x) {
+        return '<label class="campo">' + x[2] + ' (minutos)<input id="' + x[0] + '" type="number" min="0" max="1440" step="1" value="' + x[1] + '"><span class="suave" style="font-size:12.5px">' + x[3] + '</span></label>'; }).join('');
     else if (sec === 'mesas') s += '<p class="suave" style="font-size:13px;margin:0 0 6px">Escribe los números de cada zona; puedes usar rangos. Ejemplo: 1-8, 10. Una mesa que quitas queda desactivada (conserva su historial).</p><div class="dos-col"><label class="campo">Mesas del comedor<input id="c_mcom" value="' + E(rangoMesas('comedor')) + '" placeholder="1-8"></label><label class="campo">Mesas del patio<input id="c_mpat" value="' + E(rangoMesas('patio')) + '" placeholder="9-14"></label></div>' +
       sw('c_mcp', c.mesa_cliente_pide, 'El cliente puede pedir desde su mesa', 'Apagado (recomendado para empezar): el cliente que escanea el QR de la mesa solo ve el menú y su cuenta; el pedido siempre lo toma el mozo. Encendido: también puede pedir y pagar desde su teléfono.') +
       '<h3 style="margin:12px 0 4px">QR de cada mesa</h3><p class="suave" style="font-size:13px;margin:0 0 6px">Imprime el QR y pégalo en la mesa. El cliente lo escanea con la cámara del teléfono; el mozo, con la app del equipo. Si alguien se lleva uno, cámbialo y el anterior deja de servir.</p>' +
@@ -558,6 +571,12 @@
   function guardarConfig() {
     var sec = $('f-config').dataset.sec, n = function (id) { return Math.max(0, Number($(id).value) || 0); }, listo = function () { U.toast('Guardado'); pintar(); };
     var falla = function (r) { $('c_err').innerHTML = errBloque(r.error); };
+    if (sec === 'alertas') {
+      var mn = function (id) { return Math.min(1440, Math.max(0, Math.round(Number($(id).value) || 0))); };
+      api('/api/admin/config', { metodo: 'PUT', cuerpo: { alerta_mesa_atencion: mn('c_al_at'), alerta_mesa_cocina: mn('c_al_co'), alerta_mesa_listo: mn('c_al_li'), alerta_mesa_comiendo: mn('c_al_cm'), alerta_mesa_limpiar: mn('c_al_ln') } })
+        .then(function (r) { if (!r.ok) return falla(r); S.cfg = r.data; listo(); });
+      return;
+    }
     if (sec === 'mesas') {
       var mesas = [], malas = [];
       [['c_mcom', 'comedor'], ['c_mpat', 'patio']].forEach(function (z) {
