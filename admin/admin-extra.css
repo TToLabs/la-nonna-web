@@ -85,3 +85,8 @@
 .col h2 .pt{display:flex;flex-direction:column;min-width:0;flex:1}.col h2 .pt b{font-size:17px;line-height:1.15}.col h2 .pt small{font-size:12px;font-weight:500;opacity:.92;line-height:1.25}
 .col h2 .n{background:#fff;color:var(--pc);font-size:16px;font-weight:800;padding:3px 11px;margin-left:auto}
 @media(max-width:899px){.tab3{display:flex;flex-direction:column;gap:30px}.col:not(:last-child)::after{content:'↓';position:absolute;left:50%;bottom:-28px;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;background:var(--marino);color:#fff;display:grid;place-items:center;font-size:15px;font-weight:800}}
+/* Tablero: los tres pasos miden siempre lo mismo (ni el texto largo de un pedido puede ensanchar un paso) */
+.tab3>.col{width:100%;min-width:0;box-sizing:border-box}
+.tab3>.col *{overflow-wrap:anywhere}
+.tab3>.col .btn{overflow-wrap:normal}
+@media(max-width:899px){.tab3{align-items:stretch}}
