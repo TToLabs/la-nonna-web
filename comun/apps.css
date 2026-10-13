@@ -1,0 +1,58 @@
+/* Apps reales de La Nonna — complementa tema.css (formato de app formal). */
+.err-bloque{background:var(--err-t);border:1px solid #F0C4C4;color:var(--err);border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+.ok-bloque{background:var(--ok-t);border:1px solid #BFE0C3;color:var(--ok);border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+.info-bloque{background:var(--naranja-t);border:1px solid #F5D9A8;color:#6B4400;border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--naranja);outline-offset:2px}
+.cargando{display:grid;gap:10px}
+.cargando i{display:block;height:92px;border-radius:14px;background:linear-gradient(90deg,#EEF1F7,#F8F9FC,#EEF1F7);background-size:200% 100%;animation:sk 1.2s infinite}
+@media (prefers-reduced-motion:reduce){.sk,.cargando i{animation:none}}
+/* Barra de avance (splash y carga del ingreso). Determinada: se mueve con lo que ya cargó. Indeterminada: .indet */
+.avance{width:min(220px,62vw);height:6px;background:rgba(20,32,74,.12);border-radius:4px;overflow:hidden;position:relative}
+.avance i{display:block;height:100%;width:0;background:var(--naranja);border-radius:4px;transition:width .45s ease}
+.avance.indet i{width:38%;position:absolute;animation:avance-indet 1.1s ease-in-out infinite;transition:none}
+@keyframes avance-indet{0%{left:-40%}100%{left:102%}}
+@media (prefers-reduced-motion:reduce){.avance.indet i{animation:none;width:100%}}
+.avance-txt{font-size:12.5px;color:var(--suave);margin-top:8px;text-align:center;min-height:16px}
+/* Visor 360° (secuencia de cuadros, ver comun/giro.js) */
+.giro-visor{position:relative;background:#111;border-radius:14px;overflow:hidden;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;width:100%;aspect-ratio:4/3;margin:8px 0}
+.giro-visor:active{cursor:grabbing}
+.giro-visor img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+.giro-ayuda{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(20,32,74,.82);color:#fff;border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:600;transition:opacity .4s;white-space:nowrap}
+/* Mapa de mesas (admin, cocina y mozo): verde libre · naranjo en atención · rojo demorada · azul pagó, por limpiar */
+.mapa-m{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px}
+.mm{border-radius:14px;padding:8px 4px;text-align:center;color:#fff;font-weight:700;min-height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.mm b{font-size:24px;line-height:1}.mm small{font-size:11px;font-weight:600;opacity:.95}
+.mm .btn{margin-top:4px;padding:3px 8px;min-height:28px;font-size:12px}
+.mm-verde{background:#1f9d55}.mm-naranjo{background:#F08C00}.mm-lila{background:#7E57C2}.mm-rojo{background:#D32F2F;animation:mmrojo 1s infinite}.mm-azul{background:#1E63D0}
+@keyframes mmrojo{50%{background:#ff5252}}
+.mapa-ley{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}.mapa-ley span{color:#fff;border-radius:99px;padding:3px 10px;font-weight:700}
+.control-k{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.control-k .kc{background:#fff;border:1px solid var(--borde);border-radius:14px;padding:10px;text-align:center}
+.control-k .kc b{display:block;font-size:28px;color:var(--marino)}.control-k .kc span{font-size:12px;color:var(--suave,#5b6784);font-weight:600}
+.control-k .kc.on{background:#FFF3DF;border-color:#F59A1B}
+.linea-t{margin:0;padding-left:20px;font-size:13.5px;line-height:1.6}
+
+/* Activación del personal (QR del día) */
+.eq-act{max-width:420px;margin:0 auto;padding:8vh 18px 30px;text-align:center;color:#fff}
+.eq-logo{display:flex;justify-content:center;background:#fff;border-radius:16px;padding:14px;width:fit-content;margin:0 auto 14px}
+.eq-sub{color:#AEB9D6;font-size:16px;margin:6px 0 16px}
+.eq-campo{display:block;text-align:left;color:#AEB9D6;font-weight:700;font-size:14px;margin:10px 0}
+.eq-campo input{display:block;width:100%;margin-top:4px;padding:12px;border-radius:10px;border:0;font-size:18px}
+.eq-btn{display:block;width:100%;background:#F59A1B;color:#0A1230;border:0;border-radius:12px;padding:14px;font-weight:800;font-size:18px;min-height:54px;margin-top:10px;cursor:pointer}
+.eq-aviso{background:#6B4400;color:#fff;border-radius:10px;padding:10px;margin:8px 0;font-weight:600}
+.eq-err{color:#ff8a80;font-weight:700;min-height:22px;margin-top:10px}
+
+/* Activación del personal: mismo tema claro */
+.eq-fondo-claro{background:#F7F2EA}
+.eq-act{color:#22314F}
+.eq-sub{color:#7A7468}
+.eq-campo{color:#7A7468}
+.eq-campo input{border:1px solid #E8DFD2}
+.eq-btn{background:#B5652E;color:#fff}
+.eq-aviso{background:#FBEFE2;color:#8A4A22;border:1px solid #E8DFD2}
+.eq-err{color:#C62828}
+
+/* Marca de agua del personal en el navegador (nombre + hora) */
+#marca-agua{position:fixed;inset:0;z-index:99999;pointer-events:none;overflow:hidden;display:flex;flex-wrap:wrap;align-content:flex-start;gap:34px 26px;transform:rotate(-18deg) scale(1.4);opacity:.11}
+#marca-agua span{font:700 14px/1 Inter,system-ui,sans-serif;color:#000;white-space:nowrap}

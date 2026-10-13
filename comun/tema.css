@@ -1,0 +1,65 @@
+/* MAQUETA La Nonna — estilos comunes (formato de app formal). Datos de ejemplo, sin servidor. */
+:root{
+  --marino:#14204A; --marino-2:#1E2F63; --naranja:#F59A1B; --naranja-d:#D98A14; --naranja-t:#FFF3DF;
+  --fondo:#F4F6FA; --card:#FFFFFF; --borde:#E3E7EF; --texto:#14204A; --suave:#5B6779; --by:#4E5A6C;
+  --ok:#2E7D32; --ok-t:#E6F4E8; --err:#C62828; --err-t:#FBE9E9; --warn:#9A5B00; --warn-t:#FFF1D6;
+  --r-card:14px; --r-btn:10px; --sombra:0 1px 2px rgba(20,32,74,.06),0 4px 14px rgba(20,32,74,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;max-width:100%;overflow-x:hidden}
+img,canvas,video,svg{max-width:100%}
+.card,.modal,.cont,.list{min-width:0}
+body{font-family:Inter,"Segoe UI",system-ui,sans-serif;background:#DDE3EE;color:var(--texto);font-size:15px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0}
+.titulo{font-family:Lobster,"Brush Script MT",cursive;font-weight:400;letter-spacing:.2px}
+.num{font-variant-numeric:tabular-nums}
+.suave{color:var(--suave)}
+.oculto,[hidden]{display:none!important}
+
+/* botones */
+.btn{border:0;border-radius:var(--r-btn);padding:12px 16px;font-weight:600;cursor:pointer;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:filter .15s,transform .05s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-p{background:var(--naranja);color:var(--marino)}
+.btn-p:hover:not(:disabled){filter:brightness(.96)}
+.btn-s{background:#fff;color:var(--marino);border:1.5px solid var(--borde)}
+.btn-m{background:var(--marino);color:#fff}
+.btn-d{background:#fff;color:var(--err);border:1.5px solid #F0C4C4}
+.btn-sm{min-height:38px;padding:8px 12px;font-size:14px}
+.btn-bloque{width:100%}
+
+/* tarjetas y etiquetas */
+.card{background:var(--card);border:1px solid var(--borde);border-radius:var(--r-card);box-shadow:var(--sombra);padding:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600}
+.pill-ok{background:var(--ok-t);color:var(--ok)}
+.pill-err{background:var(--err-t);color:var(--err)}
+.pill-warn{background:var(--warn-t);color:var(--warn)}
+.pill-n{background:var(--naranja-t);color:var(--naranja-d)}
+.pill-g{background:#EAEEF5;color:var(--suave)}
+
+/* campos */
+label.campo{display:block;font-size:13px;font-weight:600;color:var(--suave);margin-bottom:10px}
+.campo input,.campo select,.campo textarea{display:block;width:100%;margin-top:5px;border:1.5px solid var(--borde);border-radius:var(--r-btn);padding:11px 12px;background:#fff;min-height:46px}
+.campo input:focus,.campo select:focus,.campo textarea:focus{outline:2px solid var(--naranja);outline-offset:1px;border-color:var(--naranja)}
+.err-txt{color:var(--err);font-size:13px;margin-top:4px}
+
+/* interruptor */
+.sw{position:relative;width:46px;height:26px;flex:none;display:inline-block}
+.sw input{opacity:0;width:100%;height:100%;position:absolute;inset:0;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:99px;background:#C5CCDA;transition:.15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input:checked+i{background:var(--ok)}
+.sw input:checked+i::after{left:23px}
+.sw input:focus-visible+i{outline:2px solid var(--naranja);outline-offset:2px}
+
+/* modal y aviso */
+.modal-bg{position:fixed;inset:0;background:rgba(10,18,45,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:18px}
+@media(min-width:700px){.modal-bg{align-items:center;padding:16px}.modal{border-radius:18px}}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--marino);color:#fff;padding:11px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:60;box-shadow:var(--sombra);max-width:90vw;text-align:center}
+.by{font-size:12px;color:var(--by);text-align:center;padding:10px 0 4px}
+.by b{font-weight:700;color:var(--marino)}
+.sk{background:linear-gradient(90deg,#EEF1F7,#F8F9FC,#EEF1F7);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:10px}
+@keyframes sk{to{background-position:-200% 0}}
+.aviso-maqueta{background:var(--marino);color:#fff;font-size:12px;text-align:center;padding:5px 8px}

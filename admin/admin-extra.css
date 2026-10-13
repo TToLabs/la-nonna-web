@@ -1,0 +1,60 @@
+/* Admin real: piezas nuevas respecto de la maqueta (fotos, planificador de verdad, clientes, QR). */
+.thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;background:var(--fondo);border:1px solid var(--borde);display:block}
+.thumb-ph{width:46px;height:46px;border-radius:10px;background:var(--fondo);border:1px dashed #B9C2D3;display:grid;place-items:center;color:var(--suave);font-size:11px}
+.fila-cat td{background:var(--fondo);font-size:12px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px}
+.celda{display:flex;flex-direction:column;align-items:center;gap:4px}
+.celda small{font-size:11px;color:var(--suave)}
+.celda .lnk{background:none;border:0;color:var(--marino);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:2px}
+.semana td.pasado,.semana th.pasado{opacity:.55}
+.semana td.pausado{background:var(--warn-t)}
+.nav-sem{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.fotos-edit{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.fotos-edit figure{margin:0;position:relative}
+.fotos-edit img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--borde)}
+.fotos-edit button{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;border:0;background:var(--err);color:#fff;font-weight:700;cursor:pointer}
+.chk-l{display:flex;gap:8px;align-items:center;font-size:14px;margin:6px 0}
+.chk-l input{width:20px;height:20px}
+.dos-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qr-box{text-align:center;margin:6px 0}
+.qr-box canvas{width:220px;height:220px;image-rendering:pixelated;border:6px solid #fff;box-shadow:0 0 0 1px var(--borde)}
+.clave-temp{font-family:ui-monospace,Consolas,monospace;font-size:22px;letter-spacing:1px;text-align:center;background:var(--fondo);border:1px dashed #B9C2D3;border-radius:10px;padding:12px;margin:10px 0;user-select:all}
+.lista-clientes .tabla td small{color:var(--suave);display:block}
+.modal.ancho{max-width:640px}
+/* Splash del admin: azul marino y con el chef, distinto al del cliente (claro y con el lema) */
+.splash-a{position:fixed;inset:0;background:linear-gradient(180deg,#14204A 0%,#0F1A3D 100%);color:#fff;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(34px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom));transition:opacity .35s}
+.splash-a.fuera{opacity:0;pointer-events:none}
+.splash-a-top{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.splash-a-logo{background:#fff;border-radius:16px;padding:10px 18px;display:inline-block}
+.splash-a-tit{font-size:30px;line-height:1.1;margin-top:6px}
+.splash-a-icono{display:none;width:132px;height:132px;border-radius:30px;box-shadow:0 14px 40px rgba(0,0,0,.45),0 0 0 6px rgba(255,255,255,.08)}
+/* Variantes del splash del admin (se elige con ?splash=chef|logo|icono o con window.LN_SPLASH al compilar) */
+.splash-a[data-variante=logo] .splash-a-chef,.splash-a[data-variante=icono] .splash-a-chef{display:none}
+.splash-a[data-variante=logo] .splash-a-top,.splash-a[data-variante=icono] .splash-a-top{flex:1;justify-content:center;gap:14px}
+.splash-a[data-variante=logo] .splash-a-logo{padding:16px 26px;border-radius:22px;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.splash-a[data-variante=logo] .splash-a-logo img{height:150px!important;width:auto!important}
+.splash-a[data-variante=logo] .splash-a-tit,.splash-a[data-variante=icono] .splash-a-tit{font-size:36px;margin-top:10px}
+.splash-a[data-variante=icono] .splash-a-logo{display:none}
+.splash-a[data-variante=icono] .splash-a-icono{display:block}
+.splash-a-sub{font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#AEB9D6;font-weight:600}
+.splash-a-chef{flex:1 1 auto;min-height:0;max-height:46vh;width:auto;max-width:78vw;object-fit:contain;margin:10px 0;-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+.splash-a-base{display:flex;flex-direction:column;align-items:center;gap:14px}
+.splash-a .avance{background:rgba(255,255,255,.18)}
+.by-pastilla{background:#fff;border-radius:99px;padding:5px 14px}
+.splash-a .by-logo{position:static}
+/* Franja de resumen del tablero */
+.avatar-chef{width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:50% 20%;background:#E9E9E7;border:2px solid #fff;box-shadow:0 0 0 1px var(--borde);flex:none}
+.avatar-chef.sm{width:38px;height:38px}
+.banda{margin-bottom:14px;display:grid;gap:12px}
+.banda-hola{display:flex;align-items:center;gap:12px}
+.banda-hola .saludo{font-size:24px;line-height:1.1;color:var(--marino)}
+.banda-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.banda-kpis div{background:var(--fondo);border-radius:12px;padding:9px 10px}
+.banda-kpis b{display:block;font-size:19px}
+.banda-kpis span{font-size:12px;color:var(--suave);font-weight:600}
+.banda-menu{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.banda-menu>b{font-size:13px;margin-right:4px}
+@media(max-width:899px){.banda-kpis{grid-template-columns:repeat(2,1fr)}}
+/* "by BTo Innova": discreto y al pie de la pantalla; el protagonista del splash es el logo de La Nonna. */
+.by-logo{display:flex;align-items:center;gap:.4em;justify-content:center}
+.by-logo span{font:400 12px system-ui,sans-serif;color:#4E5A6C}
+.by-logo img{height:20px;width:auto;opacity:.9}

@@ -1,0 +1,62 @@
+/* Cliente real: pantallas nuevas respecto de la maqueta (cuenta, categorías, fotos, splash). */
+.splash{position:absolute;inset:0;background:#fff;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .35s}
+.splash.fuera{opacity:0;pointer-events:none}
+.splash .by{padding:0}
+.splash-centro{display:flex;flex-direction:column;align-items:center;gap:14px}
+.splash-lema{font-size:24px;color:var(--naranja-d);margin-bottom:2px}
+/* Portada del menú: el chef y dueño, y los datos del local */
+.hero{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 124px;gap:4px;padding:0;margin-bottom:14px;background:linear-gradient(135deg,#FFF3DF 0%,#FFFFFF 70%);min-height:178px}
+.hero-txt{padding:16px 0 14px 16px;display:flex;flex-direction:column;gap:6px;z-index:1}
+.hero-t{font-size:25px;line-height:1.1;color:var(--marino)}
+.hero-txt p{margin:0;font-size:13.5px;color:var(--suave);line-height:1.4}
+.hero .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.hero-chef{align-self:end;justify-self:end;width:124px;height:auto;display:block;margin-right:6px;filter:drop-shadow(0 4px 8px rgba(20,32,74,.18))}
+/* Plato destacado a lo ancho */
+.dest{position:relative;border-radius:var(--r-card);overflow:hidden;margin-bottom:12px;box-shadow:var(--sombra);background:var(--marino);min-height:150px;cursor:pointer}
+.dest>img{width:100%;height:170px;object-fit:cover;display:block;opacity:.92}
+.dest-in{position:absolute;inset:auto 0 0 0;padding:34px 14px 12px;background:linear-gradient(transparent,rgba(10,18,45,.88));color:#fff}
+.dest-in h3{font-size:19px;margin:6px 0 6px}
+.dest-in .fila{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dest-in .precio{font-size:20px}
+/* "by BTo Innova": discreto y al pie de la pantalla; el protagonista del splash es el logo de La Nonna. */
+.by-logo{display:flex;align-items:center;gap:.4em;justify-content:center}
+.by-logo span{font:400 12px system-ui,sans-serif;color:#4E5A6C}
+.by-logo img{height:20px;width:auto;opacity:.9}
+.splash .by-logo{position:absolute;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom))}
+.cat-t{font-size:12.5px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 8px}
+.plato .foto{overflow:hidden;padding:0}
+.plato .foto img{width:100%;height:100%;object-fit:cover;display:block}
+.plato .foto .n-fotos{position:absolute;top:4px;right:4px;background:rgba(20,32,74,.78);color:#fff;border-radius:99px;font-size:10.5px;padding:1px 6px;font-weight:700}
+.plato .foto .g360{bottom:4px}
+.etq{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px}
+.galeria{position:relative;background:#000;border-radius:14px;overflow:hidden;margin:8px 0}
+.galeria img{display:block;width:100%;max-height:58vh;object-fit:contain;background:#111}
+.galeria button{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.9);font-size:20px;font-weight:700;cursor:pointer}
+.galeria .ant{left:8px}.galeria .sig{right:8px}
+.dias-sem{margin-top:6px}
+.dias-sem details{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.dias-sem summary{font-weight:700;cursor:pointer}
+.dias-sem ul{margin:8px 0 0;padding-left:18px;color:var(--suave);font-size:14px}
+.sub-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.sub-tabs button{border:1.5px solid var(--borde);background:#fff;border-radius:10px;padding:10px;font-weight:700;cursor:pointer;min-height:44px}
+.sub-tabs button.on{background:var(--marino);color:#fff;border-color:var(--marino)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--suave);margin:6px 0 10px;line-height:1.4}
+.chk input{margin-top:3px;width:20px;height:20px;flex:none}
+.acum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin:10px 0}
+.acum div{background:var(--fondo);border-radius:12px;padding:10px 4px}
+.acum b{display:block;font-size:20px}
+.acum span{font-size:12px;color:var(--suave)}
+.hist{padding:10px 0;border-bottom:1px solid var(--borde)}
+.hist:last-child{border:0}
+.hist .r1{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.hist small{color:var(--suave)}
+.tabs{grid-template-columns:repeat(4,1fr)}
+.tabs .ins{right:calc(50% - 24px)}
+.qr-cli img{width:220px;height:220px;max-width:100%;image-rendering:pixelated}
+
+/* Cliente sentado en una mesa (QR de la mesa) */
+.mesa-banda{background:#FFF6EA;border:1px solid #F1DEC4;border-radius:16px;padding:14px;margin:10px 0 14px}
+.mesa-banda .mb-t{font-size:18px;color:var(--marino)}.mesa-banda p{margin:6px 0 10px;font-size:14px}
+.mesa-banda .mb-app{margin-top:12px;padding-top:10px;border-top:1px dashed #E6CFAE;font-size:13.5px}
+.mesa-banda .mb-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mesa-banda .mb-salir{background:none;border:0;color:#8a7b66;font-size:12.5px;text-decoration:underline;margin-top:10px;cursor:pointer;padding:0}
