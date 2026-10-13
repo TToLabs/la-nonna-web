@@ -14,7 +14,7 @@
   function mins(iso) { return iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 60000)) : 0; }
   function visible(p) { return datos.paso !== 2 || filtro === 'ambos' || (filtro === 'mesas') === (p.origen === 'mesa'); }
   function etiqueta(p) {
-    if (p.origen === 'mesa') return '<span class="pill pill-n">🍽 Mesa ' + p.mesa.numero + ' · ' + (p.mesa.zona === 'patio' ? 'Patio' : 'Comedor') + '</span>';
+    if (p.origen === 'mesa') return '<span class="pill pill-n">🍽 Mesa ' + p.mesa.numero + ' · ' + U.zonaNombre(p.mesa.zona) + '</span>';
     return '<span class="pill ' + (p.tipo === 'domicilio' ? 'pill-n' : 'pill-g') + '">' + (p.tipo === 'domicilio' ? '🛵 Despacho' : '🛍 Retiro') + '</span>';
   }
   function tarjeta(p, boton) {
@@ -37,9 +37,9 @@
     if (!ms || !ms.length) return '';
     var NOMC = { verde: 'Libre', naranjo: 'Esperando / atendido', rojo: 'Demorada', lila: 'Comiendo', azul: 'Pagó · por limpiar' };
     return '<section class="grupo"><h2>Mapa de mesas</h2><div class="mapa-ley">' + ['verde', 'naranjo', 'rojo', 'lila', 'azul'].map(function (k) { return '<span class="mm-' + k + '">' + NOMC[k] + '</span>'; }).join('') + '</div>' +
-      ['comedor', 'patio'].map(function (z) {
+      U.ZONAS.map(function (z) {
         var xs = ms.filter(function (m) { return m.zona === z; }); if (!xs.length) return '';
-        return '<h2 style="margin-top:12px">' + (z === 'patio' ? 'Patio' : 'Comedor') + '</h2><div class="mapa-m">' + xs.map(function (m) { return '<div class="mm mm-' + m.color + '" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + m.minutos + ' min' : (m.fase_corta || '') + ' · ' + m.minutos + ' min') + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small></div>'; }).join('') + '</div>';
+        return '<h2 style="margin-top:12px">' + U.zonaNombre(z) + '</h2><div class="mapa-m">' + xs.map(function (m) { return '<div class="mm mm-' + m.color + '" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + m.minutos + ' min' : (m.fase_corta || '') + ' · ' + m.minutos + ' min') + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small></div>'; }).join('') + '</div>';
       }).join('') + '</section>';
   }
 

@@ -76,7 +76,7 @@
   function bandaMesa() {
     if (!S.mesa) return '';
     var m = S.mesaInfo, cta = m ? m.cuenta.por_pagar : 0;
-    var s = '<div class="mesa-banda"><div class="mb-t">🍽 Estás en la <b>Mesa ' + (m ? m.mesa.numero + ' · ' + (m.mesa.zona === 'patio' ? 'Patio' : 'Comedor') : '…') + '</b></div>';
+    var s = '<div class="mesa-banda"><div class="mb-t">🍽 Estás en la <b>Mesa ' + (m ? m.mesa.numero + ' · ' + U.zonaNombre(m.mesa.zona) : '…') + '</b></div>';
     s += enMesaSinPedir() ? '<p>Mira el menú con calma: <b>tu pedido lo toma el mozo</b>.</p>' : '<p>Puedes pedir desde aquí y pagar con la app: te lo llevamos a la mesa.</p>';
     s += '<button class="btn btn-p btn-bloque" data-act="cuentaMesa">Ver la cuenta de mi mesa' + (cta ? ' · <span class="num">' + U.clp(cta) + '</span>' : '') + '</button>';
     if (!S.cliente) s += '<div class="mb-app"><b>Llévate La Nonna en tu teléfono.</b> Crea tu cuenta y pide delivery o retiro cuando quieras; tus compras suman al programa de fidelidad.<div class="mb-acc"><button class="btn btn-s btn-sm" data-act="aCuenta">Crear mi cuenta</button>' + (!L.MODO_APK && S.apkUrl ? '<a class="btn btn-s btn-sm" href="' + E(S.apkUrl) + '">Descargar la app (Android)</a>' : '') + '</div></div>';
@@ -145,10 +145,10 @@
     chips.push('<span class="pill pill-n">' + ps.length + (ps.length === 1 ? ' plato hoy' : ' platos hoy') + '</span>');
     chips.push('<span class="pill pill-g">Retiro sin costo</span>');
     if (l.despacho_activo) chips.push('<span class="pill pill-g">Despacho ' + U.clp(l.costo_despacho) + '</span>');
-    return '<section class="card hero" aria-label="Sobre La Nonna"><div class="hero-txt"><div class="hero-t titulo">Cocina casera, como en casa</div>' +
-      '<p>Ven a disfrutar en nuestra mesa… o llévate el sabor a tu casa u oficina.</p>' +
-      '<p><b>' + E(l.direccion || '') + '</b><br>' + E(l.horario || '') + '</p><div class="chips">' + chips.join('') + '</div></div>' +
-      '<img class="hero-chef" src="' + RUTA_IMG() + 'chef.webp" alt="El chef y dueño de La Nonna" width="124" height="166"></section>';
+    return '<section class="card hero" aria-label="Sobre La Nonna"><div class="hero-txt"><div class="hero-t titulo">Cocina hogareña</div>' +
+      '<p>Disfruta de nuestra mesa. También llevamos el sabor a tu casa u oficina.</p>' +
+      '<p><b>' + E(l.direccion || '') + '</b>' + (l.horario ? '<br>Horario: ' + E(l.horario) : '') + '</p><div class="chips">' + chips.join('') + '</div></div>' +
+      '<img class="hero-chef" src="' + RUTA_IMG() + 'chef.webp" alt="El chef y dueño de La Nonna" width="279" height="374"></section>';
   }
   function destacado(abierto) {
     var p = platos().filter(function (x) { return x.destacado && !x.agotado; })[0]; if (!p) return '';
@@ -173,8 +173,8 @@
     var l = local();
     if (S.cargandoMenu && !S.menu) return '<div class="cargando" aria-busy="true"><i></i><i></i><i></i></div>';
     if (!S.menu) return bloqueError(S.errorMenu || 'No pudimos cargar el menú.', 'recargar');
-    var s = '<h2 class="titulo">Menú de hoy</h2><p class="sub">' + E(U.fechaLarga(S.menu.fecha)) + (l.horario ? ' · ' + E(l.horario) : '') + '</p>';
-    s += bandaMesa() + hero() + destacado(l.pedidos_abiertos && !enMesaSinPedir());
+    var s = bandaMesa() + hero() + '<h2 class="titulo">Menú de hoy</h2><p class="sub">' + E(U.fechaLarga(S.menu.fecha)) + '</p>';
+    s += destacado(l.pedidos_abiertos && !enMesaSinPedir());
     if (S.errorMenu) s += bloqueError('Sin conexión: mostrando el último menú cargado.');
     if (!l.pedidos_abiertos) s += '<div class="err-bloque"><b>El local no está recibiendo pedidos ahora.</b> Puedes revisar el menú y volver más tarde.</div>';
     var ps = platos();
@@ -210,10 +210,10 @@
     var sub = subtotal(), desp = S.tipo === 'domicilio' ? l.costo_despacho : 0, tot = sub + desp, bajoMin = S.tipo === 'domicilio' && sub < l.pedido_minimo;
     var s = '<h2 class="titulo">Mi pedido</h2><p class="sub">Revisa los platos y elige cómo recibirlos.</p>';
     s += S.cliente ? '<div class="ok-bloque">Pides con tu cuenta, <b>' + E(S.cliente.nombre) + '</b>: este pedido suma a tu historial.</div>' : '<div class="info-bloque">Puedes pedir sin cuenta. <a href="#" data-act="aCuenta" style="color:inherit;font-weight:700">Crea una cuenta</a> para guardar tus datos y acumular en el programa de fidelidad.</div>';
-    s += '<div class="card" style="margin-bottom:12px">';
+    s += '<div class="r-vaciar"><button class="quitar" data-act="vaciar">Vaciar pedido</button></div><div class="card" style="margin-bottom:12px">';
     ids.forEach(function (k) {
       var p = plato(k); if (!p) return;
-      s += '<div class="item-c"><div class="r1"><span>' + S.carrito[k].c + ' × ' + E(p.nombre) + '</span><span class="num">' + U.clp(p.precio * S.carrito[k].c) + '</span></div><input data-nota="' + k + '" placeholder="Nota para este plato (ej. sin cebolla)" value="' + E(S.carrito[k].nota || '') + '" maxlength="120" aria-label="Nota para ' + E(p.nombre) + '"></div>';
+      s += '<div class="item-c"><div class="r1"><span>' + E(p.nombre) + '</span><span class="num">' + U.clp(p.precio * S.carrito[k].c) + '</span></div><div class="r2"><span class="step"><button data-act="menos" data-id="' + k + '" aria-label="Quitar uno">−</button><span class="num" aria-live="polite">' + S.carrito[k].c + '</span><button data-act="mas" data-id="' + k + '" aria-label="Agregar uno" ' + (S.carrito[k].c >= maxDe(p) ? 'disabled' : '') + '>+</button></span><button class="quitar" data-act="quitar" data-id="' + k + '">Quitar plato</button></div><input data-nota="' + k + '" placeholder="Nota para este plato (ej. sin cebolla)" value="' + E(S.carrito[k].nota || '') + '" maxlength="120" aria-label="Nota para ' + E(p.nombre) + '"></div>';
     });
     if (S.mesa && S.mesaInfo && S.mesaInfo.cliente_pide) {
       s += '</div><div class="ok-bloque">🍽 Pedido para la <b>Mesa ' + S.mesaInfo.mesa.numero + '</b>: pagas con la app y te lo llevamos a la mesa.</div><div class="card"><div class="lin tot"><span>Total</span><span class="num">' + U.clp(sub) + '</span></div></div>';
@@ -412,6 +412,8 @@
     var a = t.dataset.act, id = t.dataset.id;
     if (a === 'aCuenta') { e.preventDefault(); cerrarModal(); S.modoCuenta = 'registro'; ir('cuenta'); }
     else if (a === 'mas') { var cur = S.carrito[id] || { c: 0, nota: '' }, p = plato(id); if (p && cur.c < maxDe(p)) { cur.c++; S.carrito[id] = cur; guardarCarrito(); render(); } }
+    else if (a === 'quitar') { delete S.carrito[id]; guardarCarrito(); render(); }
+    else if (a === 'vaciar') { S.carrito = {}; guardarCarrito(); render(); }
     else if (a === 'menos') { if (S.carrito[id]) { S.carrito[id].c--; if (S.carrito[id].c <= 0) delete S.carrito[id]; } guardarCarrito(); render(); }
     else if (a === 'irpedido') ir('pedido');
     else if (a === 'irmenu') ir('menu');

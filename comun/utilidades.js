@@ -34,5 +34,8 @@
     try { if (navigator.clipboard) return navigator.clipboard.writeText(txt).then(function () { return true; }, function () { return false; }); } catch (e) { /* sigue */ }
     return Promise.resolve(false);
   }
-  w.U = { clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
+  /* Zonas posibles de un local; el dueño elige cuáles tiene (Admin ☰ → Mesas). */
+  var ZONAS = ['comedor', 'patio', 'piso1', 'piso2'], ZONA_NOM = { comedor: 'Comedor', patio: 'Patio', piso1: 'Primer piso', piso2: 'Segundo piso' };
+  function zonaNombre(z) { return ZONA_NOM[z] || 'Comedor'; }
+  w.U = { ZONAS: ZONAS, zonaNombre: zonaNombre, clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
 })(window);

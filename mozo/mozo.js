@@ -11,14 +11,14 @@
   function total() { var t = 0; (D.menu || []).forEach(function (p) { t += (carrito[p.id] || 0) * p.precio; }); return t; }
   function cuantos() { var n = 0; Object.keys(carrito).forEach(function (k) { n += carrito[k]; }); return n; }
   function nombreOk() { return true; }                                        // el nombre ya viene del dispositivo activado
-  function etiquetaMesa(x) { return 'Mesa ' + x.mesa.numero + ' · ' + (x.mesa.zona === 'patio' ? 'Patio' : 'Comedor'); }
+  function etiquetaMesa(x) { return 'Mesa ' + x.mesa.numero + ' · ' + U.zonaNombre(x.mesa.zona); }
 
   function vMesas() {
     var s = '';
-    ['comedor', 'patio'].forEach(function (z) {
+    U.ZONAS.forEach(function (z) {
       var ms = D.mesas.filter(function (x) { return x.zona === z; });
       if (!ms.length) return;
-      s += '<div class="m-zona">' + (z === 'patio' ? 'Patio' : 'Comedor') + '</div><div class="m-mesas">' + ms.map(function (x) {
+      s += '<div class="m-zona">' + U.zonaNombre(z) + '</div><div class="m-mesas">' + ms.map(function (x) {
         var ps = D.pedidos.filter(function (p) { return p.mesa && p.mesa.numero === x.numero; }), hay = ps.length, lista = ps.some(function (p) { return p.estado === 'listo'; }), esp = D.esperando.indexOf(x.id) >= 0;
         var mp = (D.mapa || []).filter(function (q) { return q.id === x.id; })[0] || { color: 'verde', minutos: 0 };
         return '<button data-mesa="' + x.id + '" class="mm mm-' + mp.color + '" aria-pressed="' + (mesa === x.id) + '">' + x.numero + '<small>' + (mp.color === 'azul' ? 'por limpiar' : mp.color === 'verde' ? 'libre' : mp.fase_corta) + (mp.color !== 'verde' ? ' · ' + mp.minutos + ' min' : '') + (mp.personas > 1 ? ' · 👥' + mp.personas : '') + '</small></button>';
@@ -30,7 +30,7 @@
     var espM = D.esperando.indexOf(mesa) >= 0, mpS = (D.mapa || []).filter(function (q) { return q.id === mesa; })[0];
     if (mpS && mpS.color === 'azul') s += '<div class="m-acc" style="margin-top:14px"><button class="m-btn" data-limpia="1">🧽 Mesa limpia: queda disponible</button></div>';
     s += '<div class="m-acc" style="margin-top:14px">' + (espM ? '<button class="m-btn sec" data-liberar="1">Se fue sin pedir: liberar mesa</button><button class="m-btn sec" data-llegada="anular">Anular llegada (mesa equivocada)</button>' : '<button class="m-btn sec" data-llegada="1">🪑 Llegó cliente a la mesa</button>') + '</div>';
-    s += '<div class="card-m" style="margin-top:14px"><h3>Pedido · Mesa ' + mm.numero + ' (' + (mm.zona === 'patio' ? 'Patio' : 'Comedor') + ')</h3>';
+    s += '<div class="card-m" style="margin-top:14px"><h3>Pedido · Mesa ' + mm.numero + ' (' + U.zonaNombre(mm.zona) + ')</h3>';
     if (!D.menu.length) s += '<div class="suave">Hoy no hay platos habilitados en el menú.</div>';
     D.menu.forEach(function (p) {
       var c = carrito[p.id] || 0, agotado = p.disponibles !== null && p.disponibles <= 0;

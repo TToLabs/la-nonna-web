@@ -3,7 +3,7 @@
   var L = window.LN, U = window.U, E = U.esc, $ = function (i) { return document.getElementById(i); };
   var api = function (ruta, o) { o = o || {}; o.admin = true; return L.api(ruta, o); };
   var S = { vista: 'tablero', sub: 'carta', cfg: null, platos: [], tablero: null, dash: null, dashFecha: '', clientes: null, q: '', enlaces: null,
-    control: null, tiempos: null, mesas: [], menu: null, desde: '', mute: false, ultimo: -1, firma: '', errorVista: '' };
+    control: null, tiempos: null, mesas: [], zonas: ['comedor', 'patio'], menu: null, desde: '', mute: false, ultimo: -1, firma: '', errorVista: '' };
   var NOM = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú' };
   // Menú ☰ de arriba: cada ítem abre su propia pantalla.
   var AJUSTES = [['clave', 'Contraseña'], ['pantallas', 'Equipo y QR del día'], ['clientes', 'Clientes'], ['mesas', 'Mesas'], ['alertas', 'Alertas de mesas'], ['pedidos', 'Pedidos y despacho'], ['local', 'Datos del local'], ['fidelidad', 'Programa de fidelidad']];
@@ -110,7 +110,7 @@
       if (rs[0].status === 401) { pantallaLogin('Tu sesión terminó. Ingresa de nuevo.'); return false; }
       if (rs[0].ok) S.cfg = rs[0].data;
       if (rs[1].ok) S.platos = rs[1].data;
-      return api('/api/admin/mesas').then(function (m) { if (m.ok) S.mesas = m.data; return true; });
+      return api('/api/admin/mesas').then(function (m) { if (m.ok) S.mesas = m.data; return api('/api/admin/mesas/zonas'); }).then(function (z) { if (z && z.ok) S.zonas = z.data.activas; return true; });
     });
   }
   function fallo(r) { S.errorVista = r.error; if (r.status === 401) pantallaLogin('Tu sesión terminó. Ingresa de nuevo.'); else pintar(); }
@@ -163,9 +163,9 @@
     if (!mapa || !mapa.length) return '';
     var NOMC = { verde: 'Libre', naranjo: 'Esperando / atendido', rojo: 'Demorada', lila: 'Comiendo', azul: 'Pagó · por limpiar' };
     return '<div class="card" style="margin-top:12px"><h3>Mapa de mesas</h3><div class="mapa-ley">' + ['verde', 'naranjo', 'rojo', 'lila', 'azul'].map(function (k) { return '<span class="mm-' + k + '">' + NOMC[k] + '</span>'; }).join('') + '</div>' +
-      ['comedor', 'patio'].map(function (z) {
+      U.ZONAS.map(function (z) {
         var ms = mapa.filter(function (m) { return m.zona === z; }); if (!ms.length) return '';
-        return '<div class="suave" style="font-size:12px;font-weight:700;margin:10px 0 6px">' + (z === 'patio' ? 'PATIO' : 'COMEDOR') + '</div><div class="mapa-m">' + ms.map(function (m) {
+        return '<div class="suave" style="font-size:12px;font-weight:700;margin:10px 0 6px">' + U.zonaNombre(z).toUpperCase() + '</div><div class="mapa-m">' + ms.map(function (m) {
           return '<div class="mm mm-' + m.color + '" data-cmesa="' + m.id + '" role="button" tabindex="0" style="cursor:pointer" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + m.minutos + ' min' : (m.fase_corta || '') + ' · ' + m.minutos + ' min') + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small>' + (admin && m.color === 'azul' ? '<button class="btn btn-s btn-sm" data-climpia="' + m.id + '">Limpia</button>' : '') + '</div>';
         }).join('') + '</div>';
       }).join('') + '</div>';
@@ -177,7 +177,7 @@
       var m = r.data.mesa, hora = function (t) { return new Date(t).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false }); };
       var NOMC = { verde: 'Libre', naranjo: 'Esperando / atendido', rojo: 'Demorada', lila: 'Comiendo', azul: 'Pagó · por limpiar' };
       var EST = { solicitado: 'En cola', en_cocina: 'En cocina', listo: 'Listo', entregado: 'Servido', cancelado: 'Cancelado' };
-      var s = '<h3 class="titulo" style="font-size:26px;margin-bottom:4px">Mesa ' + m.numero + ' · ' + (m.zona === 'patio' ? 'Patio' : 'Comedor') + '</h3><div class="mapa-ley" style="margin-bottom:10px"><span class="mm-' + m.color + '">' + ((m.color === 'naranjo' || m.color === 'lila') && m.fase_texto ? m.fase_texto : NOMC[m.color]) + (m.color !== 'verde' ? ' · ' + m.minutos + ' min' : '') + '</span>' + (m.motivo ? '<span style="color:var(--texto)">' + E(m.motivo) + '</span>' : '') + '</div>';
+      var s = '<h3 class="titulo" style="font-size:26px;margin-bottom:4px">Mesa ' + m.numero + ' · ' + U.zonaNombre(m.zona) + '</h3><div class="mapa-ley" style="margin-bottom:10px"><span class="mm-' + m.color + '">' + ((m.color === 'naranjo' || m.color === 'lila') && m.fase_texto ? m.fase_texto : NOMC[m.color]) + (m.color !== 'verde' ? ' · ' + m.minutos + ' min' : '') + '</span>' + (m.motivo ? '<span style="color:var(--texto)">' + E(m.motivo) + '</span>' : '') + '</div>';
       if (m.alerta) {
         s += '<div class="err-bloque" style="margin:0 0 10px"><b>⚠ Demorada: ' + E(m.alerta.proceso) + '</b><br>Lleva <b>' + m.alerta.minutos + ' min</b> en este proceso y el límite que fijaste es de <b>' + m.alerta.limite + ' min</b> (se pasó por ' + (m.alerta.minutos - m.alerta.limite) + ' min).' +
           (m.fase === 'comiendo' ? '<br>Revisa si ya terminó y espera la cuenta, o si quiere pedir algo más (con un pedido nuevo el reloj parte de nuevo).' : '') + '</div>';
@@ -218,7 +218,7 @@
       s += '<div class="card" style="margin-top:12px"><h3>Tiempos de atención en mesas (hoy)</h3><p class="suave" style="font-size:13px;margin:0 0 8px">Promedio de cada momento: cliente sentado esperando pedido → pedido generado hasta listo (cocina) → llevarlo a la mesa → comiendo hasta que paga → limpieza → mesa libre hasta el siguiente cliente.</p>' +
         '<div class="control-k">' + [['Esperando pedido', t.promedio.esperando], ['Cocina', t.promedio.cocina], ['Llevar a la mesa', t.promedio.llevar], ['Comiendo hasta pagar', t.promedio.comiendo], ['Limpieza', t.promedio.limpieza], ['Ocupación total', t.promedio.ocupacion], ['Mesa libre', t.promedio.libre]].map(function (x) { return '<div class="kc"><b class="num" style="font-size:20px">' + mn(x[1]) + '</b><span>' + x[0] + '</span></div>'; }).join('') + '</div>';
       if (t.mesas.length) s += '<div class="scroll-x" style="margin-top:8px"><table class="tabla"><thead><tr><th>Mesa</th><th>Pedidos</th><th>Esperando</th><th>Cocina</th><th>Llevar</th><th>Comiendo</th><th>Limpieza</th><th>Ocupación</th><th>Libre</th></tr></thead><tbody>' + t.mesas.map(function (m) {
-        return '<tr><td>' + m.mesa + ' · ' + (m.zona === 'patio' ? 'Patio' : 'Comedor') + '</td><td class="num">' + m.pedidos + '</td><td>' + mn(m.esperando) + '</td><td>' + mn(m.cocina) + '</td><td>' + mn(m.llevar) + '</td><td>' + mn(m.comiendo) + '</td><td>' + mn(m.limpieza) + '</td><td>' + mn(m.ocupacion) + '</td><td>' + mn(m.libre) + '</td></tr>';
+        return '<tr><td>' + m.mesa + ' · ' + U.zonaNombre(m.zona) + '</td><td class="num">' + m.pedidos + '</td><td>' + mn(m.esperando) + '</td><td>' + mn(m.cocina) + '</td><td>' + mn(m.llevar) + '</td><td>' + mn(m.comiendo) + '</td><td>' + mn(m.limpieza) + '</td><td>' + mn(m.ocupacion) + '</td><td>' + mn(m.libre) + '</td></tr>';
       }).join('') + '</tbody></table></div>';
       s += '</div>';
     }
@@ -226,7 +226,7 @@
     s += '<div class="card" style="margin-top:12px"><h3>Todos los pedidos de hoy (' + c.pedidos.length + ')</h3>';
     if (!c.pedidos.length) return s + '<p class="suave" style="margin:0">Aún no hay pedidos.</p></div>';
     s += '<div class="scroll-x"><table class="tabla"><thead><tr><th>#</th><th>Tipo</th><th>Dónde está</th><th>Platos</th><th>Personas</th><th>Total</th><th></th></tr></thead><tbody>' + c.pedidos.slice().reverse().map(function (p) {
-      var tipo = p.origen === 'mesa' ? '🍽 Mesa ' + p.mesa.numero + ' · ' + (p.mesa.zona === 'patio' ? 'Patio' : 'Comedor') : p.tipo === 'domicilio' ? '🛵 Envío<br><small>' + E(p.cliente) + ' · ' + E(p.direccion) + '</small>' : '🛍 Retiro<br><small>' + E(p.cliente) + '</small>';
+      var tipo = p.origen === 'mesa' ? '🍽 Mesa ' + p.mesa.numero + ' · ' + U.zonaNombre(p.mesa.zona) : p.tipo === 'domicilio' ? '🛵 Envío<br><small>' + E(p.cliente) + ' · ' + E(p.direccion) + '</small>' : '🛍 Retiro<br><small>' + E(p.cliente) + '</small>';
       var pers = [p.mozo_toma && 'Tomó: ' + E(p.mozo_toma), p.mozo_entrega && 'Sirvió: ' + E(p.mozo_entrega), p.cobrado_por && 'Cobró: ' + E(p.cobrado_por) + ' (' + E(p.cobro_medio) + ')', p.repartidor && 'Reparto: ' + E(p.repartidor)].filter(Boolean).join('<br>') || '—';
       var acc = '';
       if (p.estado !== 'cancelado' && p.estado !== 'entregado') {
@@ -528,7 +528,7 @@
   }
   function modalQRMesa(m, dir) {
     var url = dir.base + '/cliente/#mesa=' + m.codigo;
-    abrirModal('<h3 class="titulo" style="font-size:26px">QR · Mesa ' + m.numero + ' (' + (m.zona === 'patio' ? 'Patio' : 'Comedor') + ')</h3><div class="info-bloque">Imprímelo y pégalo en la mesa. El cliente lo escanea y se abre La Nonna en esa mesa.</div>' + (dir.tipo === 'lan' ? '<div class="info-bloque">Este link usa la dirección de tu red (<b>' + E(dir.base) + '</b>): hoy solo abre dentro del mismo wifi. Para usarlo en las mesas hay que publicar el servidor.</div>' : '') + '<div class="qr-box" id="qr"></div><div class="linkbox" id="lk"></div><div class="dos-col"><button class="btn btn-s" id="b-copiar">Copiar link</button><a class="btn btn-s" id="b-png" download="la-nonna-mesa-' + m.numero + '.png">Descargar QR</a></div><button class="btn btn-p btn-bloque" style="margin-top:8px" data-act="cerrar">Listo</button>');
+    abrirModal('<h3 class="titulo" style="font-size:26px">QR · Mesa ' + m.numero + ' (' + U.zonaNombre(m.zona) + ')</h3><div class="info-bloque">Imprímelo y pégalo en la mesa. El cliente lo escanea y se abre La Nonna en esa mesa.</div>' + (dir.tipo === 'lan' ? '<div class="info-bloque">Este link usa la dirección de tu red (<b>' + E(dir.base) + '</b>): hoy solo abre dentro del mismo wifi. Para usarlo en las mesas hay que publicar el servidor.</div>' : '') + '<div class="qr-box" id="qr"></div><div class="linkbox" id="lk"></div><div class="dos-col"><button class="btn btn-s" id="b-copiar">Copiar link</button><a class="btn btn-s" id="b-png" download="la-nonna-mesa-' + m.numero + '.png">Descargar QR</a></div><button class="btn btn-p btn-bloque" style="margin-top:8px" data-act="cerrar">Listo</button>');
     $('lk').textContent = url;
     var c = dibujarQR(url); $('qr').appendChild(c); $('b-png').href = c.toDataURL('image/png');
     $('b-copiar').onclick = function () { U.copiar(url).then(function (ok) { U.toast(ok ? 'Link copiado' : 'Copia el link manualmente'); }); };
@@ -562,10 +562,10 @@
        ['c_al_cm', c.alerta_mesa_comiendo, 'Comiendo', 'Desde que se sirvió. Tiempo corto a propósito: avisa para ver si ya terminó, espera la cuenta o quiere pedir algo más. Si hace otro pedido, el reloj parte de nuevo.'],
        ['c_al_ln', c.alerta_mesa_limpiar, 'Pagó y sin limpiar', 'Ya pagó y la mesa sigue sin quedar disponible.']].map(function (x) {
         return '<label class="campo">' + x[2] + ' (minutos)<input id="' + x[0] + '" type="number" min="0" max="1440" step="1" value="' + x[1] + '"><span class="suave" style="font-size:12.5px">' + x[3] + '</span></label>'; }).join('');
-    else if (sec === 'mesas') s += '<p class="suave" style="font-size:13px;margin:0 0 6px">Escribe los números de cada zona; puedes usar rangos. Ejemplo: 1-8, 10. Una mesa que quitas queda desactivada (conserva su historial).</p><div class="dos-col"><label class="campo">Mesas del comedor<input id="c_mcom" value="' + E(rangoMesas('comedor')) + '" placeholder="1-8"></label><label class="campo">Mesas del patio<input id="c_mpat" value="' + E(rangoMesas('patio')) + '" placeholder="9-14"></label></div>' +
+    else if (sec === 'mesas') s += (function () { var n = function (z) { return S.mesas.filter(function (m) { return m.activa && m.zona === z; }).length; }; return '<h3 style="margin:0 0 4px">¿Qué zonas tiene tu local?</h3><p class="suave" style="font-size:13px;margin:0 0 6px">Marca las que usas. Solo esas aparecen al agregar mesas y en el mapa.</p><div class="zonas-sel">' + U.ZONAS.map(function (z) { return '<label class="zona-op"><input type="checkbox" data-act="zonaTog" data-z="' + z + '" ' + (S.zonas.indexOf(z) >= 0 ? 'checked' : '') + '><span>' + U.zonaNombre(z) + '</span></label>'; }).join('') + '</div><div id="zn_err"></div><div class="cuenta-mesas" style="grid-template-columns:repeat(' + (S.zonas.length + 1) + ',1fr)">' + S.zonas.map(function (z) { return '<div><b>' + n(z) + '</b><span>' + U.zonaNombre(z) + '</span></div>'; }).join('') + '<div><b>' + S.mesas.filter(function (m) { return m.activa; }).length + '</b><span>Total</span></div></div>'; })() + '<h3 style="margin:0 0 4px">Cantidad de mesas</h3><p class="suave" style="font-size:13px;margin:0 0 6px">Suma o quita con + y −, o escribe la cantidad. Las nuevas toman el siguiente número.</p>' + S.zonas.map(function (z) { var cnt = S.mesas.filter(function (m) { return m.activa && m.zona === z; }).length; return '<div class="zona-cant"><b>' + U.zonaNombre(z) + '</b><span class="step"><button type="button" data-act="zMenos" data-z="' + z + '" aria-label="Quitar una mesa de ' + U.zonaNombre(z) + '" ' + (cnt ? '' : 'disabled') + '>−</button><input type="number" min="0" max="99" inputmode="numeric" data-zc="' + z + '" value="' + cnt + '" aria-label="Mesas de ' + U.zonaNombre(z) + '"><button type="button" data-act="zMas" data-z="' + z + '" aria-label="Agregar una mesa a ' + U.zonaNombre(z) + '">+</button></span></div>'; }).join('') + '<div id="nm_err"></div>' +
       sw('c_mcp', c.mesa_cliente_pide, 'El cliente puede pedir desde su mesa', 'Apagado (recomendado para empezar): el cliente que escanea el QR de la mesa solo ve el menú y su cuenta; el pedido siempre lo toma el mozo. Encendido: también puede pedir y pagar desde su teléfono.') +
       '<h3 style="margin:12px 0 4px">QR de cada mesa</h3><p class="suave" style="font-size:13px;margin:0 0 6px">Imprime el QR y pégalo en la mesa. El cliente lo escanea con la cámara del teléfono; el mozo, con la app del equipo. Si alguien se lleva uno, cámbialo y el anterior deja de servir.</p>' +
-      '<div class="scroll-x"><table class="tabla"><thead><tr><th>Mesa</th><th></th></tr></thead><tbody>' + S.mesas.filter(function (m) { return m.activa; }).map(function (m) { return '<tr><td><b>' + m.numero + '</b> · ' + (m.zona === 'patio' ? 'Patio' : 'Comedor') + '</td><td style="white-space:nowrap"><button type="button" class="btn btn-p btn-sm" data-act="qrMesa" data-id="' + m.id + '">Ver QR</button> <button type="button" class="btn btn-s btn-sm" data-act="nuevoQRMesa" data-id="' + m.id + '">Cambiar</button></td></tr>'; }).join('') + '</tbody></table></div>';
+      '<div class="scroll-x"><table class="tabla"><thead><tr><th>Mesa</th><th></th></tr></thead><tbody>' + S.mesas.filter(function (m) { return m.activa; }).sort(function (x, y) { return x.zona === y.zona ? x.numero - y.numero : (x.zona === 'comedor' ? -1 : 1); }).map(function (m) { return '<tr><td><b>' + m.numero + '</b> · ' + U.zonaNombre(m.zona) + '</td><td style="white-space:nowrap"><button type="button" class="btn btn-p btn-sm" data-act="qrMesa" data-id="' + m.id + '">Ver QR</button> <button type="button" class="btn btn-s btn-sm" data-act="nuevoQRMesa" data-id="' + m.id + '">Cambiar</button> <button type="button" class="btn btn-s btn-sm" data-act="quitMesa" data-id="' + m.id + '">Quitar</button></td></tr>'; }).join('') + '</tbody></table></div>';
     return s + '<div id="c_err"></div><button class="btn btn-p" type="submit">Guardar cambios</button></form>';
   }
   function guardarConfig() {
@@ -578,19 +578,7 @@
       return;
     }
     if (sec === 'mesas') {
-      var mesas = [], malas = [];
-      [['c_mcom', 'comedor'], ['c_mpat', 'patio']].forEach(function (z) {
-        $(z[0]).value.split(',').map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (x) {
-          var r = /^(\d+)\s*-\s*(\d+)$/.exec(x), a = r ? +r[1] : +x, b = r ? +r[2] : +x;
-          if (!a || !b || b < a || b - a > 99) { malas.push(x); return; }
-          for (var i = a; i <= b; i++) mesas.push({ numero: i, zona: z[1] });
-        });
-      });
-      if (malas.length) { $('c_err').innerHTML = errBloque('No entiendo estas mesas: ' + malas.join(', ') + '. Usa números o rangos como 1-8.'); return; }
-      api('/api/admin/mesas', { metodo: 'PUT', cuerpo: { mesas: mesas } }).then(function (m) {
-        if (!m.ok) return falla(m); S.mesas = m.data;
-        return api('/api/admin/config', { metodo: 'PUT', cuerpo: { mesa_cliente_pide: $('c_mcp').checked } }).then(function (r) { if (!r.ok) return falla(r); S.cfg = r.data; listo(); });
-      });
+      api('/api/admin/config', { metodo: 'PUT', cuerpo: { mesa_cliente_pide: $('c_mcp').checked } }).then(function (r) { if (!r.ok) return falla(r); S.cfg = r.data; listo(); });
       return;
     }
     var cuerpo = sec === 'local' ? { nombre_local: $('c_nombre').value, direccion: $('c_dir').value, whatsapp: $('c_wa').value, horario: $('c_hor').value, categorias: $('c_cats').value.split('\n').map(function (x) { return x.trim(); }).filter(Boolean) }
@@ -598,12 +586,29 @@
       : { fidelidad_activa: $('c_fid').checked, fidelidad_descripcion: $('c_fidtxt').value };
     api('/api/admin/config', { metodo: 'PUT', cuerpo: cuerpo }).then(function (r) { if (!r.ok) return falla(r); S.cfg = r.data; listo(); });
   }
-  // Mesas activas de una zona como texto con rangos: 1-8, 10
-  function rangoMesas(zona) {
-    var ns = S.mesas.filter(function (m) { return m.zona === zona && m.activa; }).map(function (m) { return m.numero; }).sort(function (a, b) { return a - b; }), out = [];
-    for (var i = 0; i < ns.length; i++) { var j = i; while (j + 1 < ns.length && ns[j + 1] === ns[j] + 1) j++; out.push(j > i ? ns[i] + '-' + ns[j] : String(ns[i])); i = j; }
-    return out.join(', ');
+  // Agregar / quitar una mesa: se manda la lista completa de mesas activas (el servidor desactiva las que faltan, nunca las borra).
+  function guardarMesas(lista, msg) {
+    return api('/api/admin/mesas', { metodo: 'PUT', cuerpo: { mesas: lista } }).then(function (r) {
+      if (!r.ok) { var e = $('nm_err'); if (e) e.innerHTML = errBloque(r.error); else U.toast(r.error); return; }
+      S.mesas = r.data; U.toast(msg); pintar();
+    });
   }
+  function zonaCant(z) { return S.mesas.filter(function (m) { return m.activa && m.zona === z; }).length; }
+  // Lleva una zona a N mesas: suma con los siguientes números libres o quita las de número más alto de esa zona.
+  function ajustarZona(z, n) {
+    if (!(n >= 0 && n <= 99)) { pintar(); return; }
+    var lista = mesasActivas(), cur = zonaCant(z);
+    if (n === cur) { pintar(); return; }
+    if (n > cur) {
+      var sig = lista.reduce(function (mx, m) { return Math.max(mx, m.numero); }, 0), nuevas = [];
+      for (var i = cur; i < n; i++) { sig++; if (sig > 999) { pintar(); return; } lista.push({ numero: sig, zona: z }); nuevas.push(sig); }
+      guardarMesas(lista, 'Mesa' + (nuevas.length > 1 ? 's ' : ' ') + nuevas.join(', ') + ' agregada' + (nuevas.length > 1 ? 's' : ''));
+    } else {
+      var quitar = lista.filter(function (m) { return m.zona === z; }).map(function (m) { return m.numero; }).sort(function (a, b) { return b - a; }).slice(0, cur - n);
+      guardarMesas(lista.filter(function (m) { return quitar.indexOf(m.numero) < 0; }), 'Mesa' + (quitar.length > 1 ? 's ' : ' ') + quitar.join(', ') + ' quitada' + (quitar.length > 1 ? 's' : ''));
+    }
+  }
+  function mesasActivas() { return S.mesas.filter(function (m) { return m.activa; }).map(function (m) { return { numero: m.numero, zona: m.zona }; }); }
 
   /* ================= eventos ================= */
   document.addEventListener('click', function (e) {
@@ -640,6 +645,17 @@
     else if (d.act === 'copiarTxt') U.copiar(d.t).then(function (ok) { U.toast(ok ? 'Copiado' : 'Cópialo manualmente'); });
     else if (d.act === 'verQR') { var qx = S.enlaces.qr.filter(function (y) { return y.paso === +d.paso; })[0]; direccionPublica().then(function (dir) { modalEnlace(qx, dir); }); }
     else if (d.act === 'qrMesa') { var mq = S.mesas.filter(function (y) { return y.id === +d.id; })[0]; direccionPublica().then(function (dir) { modalQRMesa(mq, dir); }); }
+    else if (d.act === 'zonaTog') {
+      var zs = S.zonas.filter(function (z) { return z !== d.z; }); if (t.checked) zs = U.ZONAS.filter(function (z) { return z === d.z || S.zonas.indexOf(z) >= 0; });
+      api('/api/admin/mesas/zonas', { metodo: 'PUT', cuerpo: { zonas: zs } }).then(function (r) { if (!r.ok) { t.checked = !t.checked; var e = $('zn_err'); if (e) e.innerHTML = errBloque(r.error); return; } S.zonas = r.data.activas; pintar(); });
+    }
+    else if (d.act === 'zMas') ajustarZona(d.z, zonaCant(d.z) + 1);
+    else if (d.act === 'zMenos') ajustarZona(d.z, zonaCant(d.z) - 1);
+    else if (d.act === 'quitMesa') {
+      var q = S.mesas.filter(function (m) { return String(m.id) === d.id; })[0]; if (!q) return;
+      abrirModal('<h3 class="titulo" style="font-size:26px">Quitar mesa ' + q.numero + '</h3><p>Sale de la lista y del mapa. Conserva su historial; puedes volver a agregarla cuando quieras.</p><div class="dos-col"><button class="btn btn-s" data-act="cerrar">Volver</button><button class="btn btn-p" data-act="quitMesaOk" data-id="' + q.id + '">Quitar</button></div>');
+    }
+    else if (d.act === 'quitMesaOk') { cerrarModal(); guardarMesas(mesasActivas().filter(function (m) { return !S.mesas.some(function (y) { return String(y.id) === d.id && y.numero === m.numero; }); }), 'Mesa quitada'); }
     else if (d.act === 'nuevoQRMesa') abrirModal('<h3 class="titulo" style="font-size:26px">Cambiar QR de la mesa</h3><p>El QR impreso deja de funcionar y tendrás que imprimir el nuevo.</p><div class="dos-col"><button class="btn btn-s" data-act="cerrar">Volver</button><button class="btn btn-p" data-act="nuevoQRMesaOk" data-id="' + d.id + '">Cambiar QR</button></div>');
     else if (d.act === 'nuevoQRMesaOk') api('/api/admin/mesas/' + d.id + '/qr/nuevo', { metodo: 'POST' }).then(function (r) { cerrarModal(); if (!r.ok) { U.toast(r.error); return; } S.mesas = S.mesas.map(function (y) { return y.id === r.data.id ? r.data : y; }); direccionPublica().then(function (dir) { modalQRMesa(r.data, dir); }); });
     else if (d.act === 'nuevoQR') abrirModal('<h3 class="titulo" style="font-size:26px">Cambiar QR del día</h3><p>Úsalo si el QR se filtró o alguien no debería entrar. El QR actual deja de activar teléfonos nuevos; los que ya entraron siguen hasta que los desactives.</p><div class="dos-col"><button class="btn btn-s" data-act="cerrar">Volver</button><button class="btn btn-p" data-act="nuevoQROk" data-paso="' + d.paso + '">Cambiar QR</button></div>');
@@ -664,6 +680,8 @@
     else if (t.id === 'd_fecha') { S.dashFecha = t.value; cargarDash(); }
   });
   document.addEventListener('input', function (e) { if (e.target.id === 'q_cli') { S.q = e.target.value; clearTimeout(S._qt); S._qt = setTimeout(cargarClientes, 300); } });
+  document.addEventListener('change', function (e) { var z = e.target.dataset && e.target.dataset.zc; if (z) ajustarZona(z, Math.round(Number(e.target.value))); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.zc) { e.preventDefault(); e.target.blur(); } });
   document.addEventListener('submit', function (e) { if (e.target.id === 'f-config') { e.preventDefault(); guardarConfig(); } if (e.target.id === 'f-clave') { e.preventDefault(); cambiarClave(); } });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarModal(); });
 
