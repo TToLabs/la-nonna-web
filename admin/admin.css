@@ -3,7 +3,7 @@ body{background:var(--fondo)}
 .login .card{width:100%;max-width:380px;padding:24px;text-align:center}
 .shell{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
 .side{background:var(--marino);color:#fff;padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
-.side .marca{background:#fff;border-radius:12px;padding:10px;display:grid;place-items:center;margin-bottom:12px}
+.side .marca{display:grid;place-items:center;margin:4px 0 8px}.side .marca img{width:100%;max-width:190px;height:auto;display:block}
 .side .sub-m{font-size:12px;color:#AEB9D6;text-align:center;margin:-4px 0 10px}
 .side button.nv{background:none;border:0;color:#CBD3EA;text-align:left;padding:11px 12px;border-radius:10px;font-weight:600;display:flex;align-items:center;gap:10px;cursor:pointer;min-height:46px}
 .side button.nv svg,.bnav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}

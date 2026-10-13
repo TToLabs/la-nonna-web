@@ -3,8 +3,8 @@
   var L = window.LN, U = window.U, E = U.esc, $ = function (i) { return document.getElementById(i); };
   var api = function (ruta, o) { o = o || {}; o.admin = true; return L.api(ruta, o); };
   var S = { vista: 'tablero', sub: 'carta', cfg: null, platos: [], tablero: null, dash: null, dashFecha: '', clientes: null, q: '', enlaces: null,
-    control: null, tiempos: null, mesas: [], zonas: ['comedor', 'patio'], menu: null, desde: '', mute: false, ultimo: -1, firma: '', errorVista: '' };
-  var NOM = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú' };
+    control: null, tiempos: null, mesas: [], zonas: ['comedor', 'patio'], filtroC: '', menu: null, desde: '', mute: false, ultimo: -1, firma: '', errorVista: '' };
+  var NOM = { dashboard: 'Dashboard', tablero: 'Tablero', control: 'Control', menu: 'Menú' };
   // Menú ☰ de arriba: cada ítem abre su propia pantalla.
   var AJUSTES = [['clave', 'Contraseña'], ['pantallas', 'Equipo y QR del día'], ['clientes', 'Clientes'], ['mesas', 'Mesas'], ['alertas', 'Alertas de mesas'], ['pedidos', 'Pedidos y despacho'], ['local', 'Datos del local'], ['fidelidad', 'Programa de fidelidad']];
   var TIT = { tablero: 'Tablero', control: 'Control', dashboard: 'Dashboard', menu: 'Menú', clave: 'Contraseña', pantallas: 'Equipo', clientes: 'Clientes', mesas: 'Mesas', alertas: 'Alertas de mesas', pedidos: 'Pedidos y despacho', local: 'Datos del local', fidelidad: 'Fidelidad' };
@@ -53,7 +53,7 @@
       nav += '<button class="nv" data-v="' + k + '">' + IC[k] + NOM[k] + '</button>';
       bn += '<button data-v="' + k + '">' + IC[k] + NOM[k] + '</button>';
     });
-    $('raiz').innerHTML = '<div class="shell"><aside class="side"><div class="marca">' + U.logo(58) + '</div><div class="sub-m">Delivery La Nonna</div>' + nav + '<div class="by">by <b>BTo Innova</b></div></aside><div class="cont"><header class="hdr" id="hdr"><img class="avatar-chef sm" src="' + (window.LN_RUTA_IMG || '../img/') + 'chef-avatar.webp" alt=""><h1 class="titulo" id="tit"></h1><span id="est" class="pill pill-g">…</span><button class="btn btn-s btn-sm" id="mut" aria-pressed="false" aria-label="Sonido">🔊</button><button class="hamb" id="hamb" aria-label="Abrir menú" aria-expanded="false"><i></i><i></i><i></i></button></header><main class="pagina" id="pag" aria-live="polite"></main></div></div><nav class="bnav" style="grid-template-columns:repeat(4,1fr)">' + bn + '</nav>' +
+    $('raiz').innerHTML = '<div class="shell"><aside class="side"><div class="marca"><img src="' + (window.LN_RUTA_IMG || '../img/') + 'logo-la-nonna-transp.webp" alt="La Nonna" width="190" height="122"></div><div class="sub-m">Delivery La Nonna</div>' + nav + '<div class="by">by <b>BTo Innova</b></div></aside><div class="cont"><header class="hdr" id="hdr"><h1 class="titulo" id="tit"></h1><span id="est" class="pill pill-g">…</span><button class="btn btn-s btn-sm" id="mut" aria-pressed="false" aria-label="Sonido">🔊</button><button class="hamb" id="hamb" aria-label="Abrir menú" aria-expanded="false"><i></i><i></i><i></i></button></header><main class="pagina" id="pag" aria-live="polite"></main></div></div><nav class="bnav" style="grid-template-columns:repeat(4,1fr)">' + bn + '</nav>' +
       '<div class="ml-fondo" id="mlf" hidden></div><aside class="ml" id="ml" aria-hidden="true" aria-label="Menú"><div class="ml-cab"><img class="avatar-chef sm" src="' + (window.LN_RUTA_IMG || '../img/') + 'chef-avatar.webp" alt=""><div class="ml-quien"><strong>Administración</strong><span>Delivery La Nonna</span></div><button class="ml-x" id="mlx" aria-label="Cerrar el menú">&times;</button></div>' +
       AJUSTES.map(function (a) { return '<button class="ml-item" data-v="' + a[0] + '">' + E(a[1]) + '</button>'; }).join('') + '<button class="ml-item ml-salir" id="sal">Salir</button><div class="by" style="margin-top:14px">by <b>BTo Innova</b></div></aside>';
     document.querySelectorAll('[data-v]').forEach(function (b) { b.onclick = function () { ir(b.dataset.v); }; });
@@ -138,10 +138,10 @@
   function vTablero() {
     var t = S.tablero;
     if (!t) return S.errorVista ? errBloque(S.errorVista) : '<div class="cargando" aria-busy="true"><i></i><i></i></div>';
-    var cols = [['solicitados', '1 · Solicitados'], ['en_cocina', '2 · En cocina'], ['listos', '3 · Despacho o retiro']], s = (S.errorVista ? errBloque(S.errorVista) : '') + vResumen() + '<div class="tab3">';
+    var cols = [['solicitados', '1 · Solicitados', 1, 'Pedidos nuevos: esperan pasar a cocina'], ['en_cocina', '2 · En cocina', 2, 'Se están preparando ahora'], ['listos', '3 · Despacho o retiro', 3, 'Listos: falta entregarlos']], s = (S.errorVista ? errBloque(S.errorVista) : '') + vResumen() + '<div class="tab3">';
     cols.forEach(function (c) {
       var xs = t[c[0]];
-      s += '<section class="col" aria-label="' + c[1] + '"><h2>' + c[1] + '<span class="n num">' + xs.length + '</span></h2>';
+      s += '<section class="col paso-' + c[2] + '" aria-label="' + c[1] + '"><h2><span class="pn">' + c[2] + '</span><span class="pt"><b>' + c[1].replace(/^\d · /, '') + '</b><small>' + c[3] + '</small></span><span class="n num">' + xs.length + '</span></h2>';
       if (c[0] === 'listos') {
         var de = xs.filter(function (p) { return p.tipo === 'domicilio'; }), re = xs.filter(function (p) { return p.tipo !== 'domicilio' && p.origen !== 'mesa'; }), me = xs.filter(function (p) { return p.origen === 'mesa'; });
         s += '<div class="suave" style="font-size:12px;font-weight:700;margin:2px 4px 6px">PARA DESPACHO (' + de.length + ')</div>' + (de.map(tarjeta).join('') || '<p class="suave" style="font-size:13px;margin:0 4px 10px">Sin pedidos.</p>') + '<div class="suave" style="font-size:12px;font-weight:700;margin:8px 4px 6px">PARA RETIRO (' + re.length + ')</div>' + (re.map(tarjeta).join('') || '<p class="suave" style="font-size:13px;margin:0 4px">Sin pedidos.</p>') + '<div class="suave" style="font-size:12px;font-weight:700;margin:8px 4px 6px">PARA LLEVAR A LA MESA (' + me.length + ')</div>' + (me.map(tarjeta).join('') || '<p class="suave" style="font-size:13px;margin:0 4px">Sin pedidos.</p>');
@@ -200,13 +200,29 @@
     });
   }
   var mn = function (v) { return v == null ? '—' : U.duracion(v); };
+  var FILTROSC = {
+    solicitados: { t: 'Pedidos en cola', f: function (x) { return x.estado === 'solicitado'; } },
+    en_cocina: { t: 'Pedidos en cocina', f: function (x) { return x.estado === 'en_cocina'; } },
+    pendientes_retiro: { t: 'Pendientes de retiro', f: function (x) { return x.estado === 'listo' && x.origen === 'app' && x.tipo === 'retiro'; } },
+    esperando_repartidor: { t: 'Esperando repartidor', f: function (x) { return x.estado === 'listo' && x.tipo === 'domicilio' && !x.ruta_en; } },
+    en_ruta: { t: 'En ruta de envío', f: function (x) { return x.estado === 'listo' && x.tipo === 'domicilio' && !!x.ruta_en; } },
+    mesas_abiertas: { t: 'Mesas con pedido', f: function (x) { return x.estado !== 'cancelado' && x.origen === 'mesa' && !(x.estado === 'entregado' && x.pagado); } },
+    mesas_listas_para_llevar: { t: 'Listos para llevar a la mesa', f: function (x) { return x.origen === 'mesa' && x.estado === 'listo'; } },
+    mesas_por_cobrar: { t: 'Mesas por cobrar', f: function (x) { return x.estado !== 'cancelado' && x.origen === 'mesa' && !x.pagado; } },
+    entregados: { t: 'Finalizados', f: function (x) { return x.estado === 'entregado'; } },
+    cancelados: { t: 'Cancelados', f: function (x) { return x.estado === 'cancelado'; } }
+  };
   function vControl() {
     var c = S.control;
     if (!c) return S.errorVista ? errBloque(S.errorVista) : '<div class="cargando" aria-busy="true"><i></i><i></i></div>';
-    var r = c.resumen, k = function (n, t, cls) { return '<div class="kc ' + (cls || '') + '"><b class="num">' + n + '</b><span>' + t + '</span></div>'; };
+    var r = c.resumen, k = function (n, t, cls, f) { return '<button type="button" class="kc kcb ' + (cls || '') + (S.filtroC === f ? ' sel' : '') + '" data-act="filtroC" data-f="' + f + '"><b class="num">' + n + '</b><span>' + t + '</span></button>'; };
     var s = (S.errorVista ? errBloque(S.errorVista) : '') + '<div class="control-k">' +
-      k(r.solicitados, 'En cola') + k(r.en_cocina, 'En cocina') + k(r.pendientes_retiro, 'Pendientes de retiro') + k(r.esperando_repartidor, 'Esperando repartidor') + k(r.en_ruta, 'En ruta de envío', r.en_ruta ? 'on' : '') +
-      k(r.mesas_abiertas, 'Mesas con pedido') + k(r.mesas_listas_para_llevar, 'Listos para llevar a mesa', r.mesas_listas_para_llevar ? 'on' : '') + k(r.mesas_por_cobrar, 'Mesas por cobrar') + k(r.entregados, 'Finalizados') + k(r.cancelados, 'Cancelados') + '</div>';
+      k(r.solicitados, 'En cola', '', 'solicitados') + k(r.en_cocina, 'En cocina', '', 'en_cocina') + k(r.pendientes_retiro, 'Pendientes de retiro', '', 'pendientes_retiro') + k(r.esperando_repartidor, 'Esperando repartidor', '', 'esperando_repartidor') + k(r.en_ruta, 'En ruta de envío', r.en_ruta ? 'on' : '', 'en_ruta') +
+      k(r.mesas_abiertas, 'Mesas con pedido', '', 'mesas_abiertas') + k(r.mesas_listas_para_llevar, 'Listos para llevar a mesa', r.mesas_listas_para_llevar ? 'on' : '', 'mesas_listas_para_llevar') + k(r.mesas_por_cobrar, 'Mesas por cobrar', '', 'mesas_por_cobrar') + k(r.entregados, 'Finalizados', '', 'entregados') + k(r.cancelados, 'Cancelados', '', 'cancelados') + '</div>';
+    if (S.filtroC && FILTROSC[S.filtroC]) {                          // acceso directo: tocar un contador muestra aquí mismo esos pedidos
+      var fl = c.pedidos.filter(FILTROSC[S.filtroC].f).reverse();
+      s += '<div class="card" id="fc" style="margin-top:12px"><h3 style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>' + FILTROSC[S.filtroC].t + ' (' + fl.length + ')</span><button type="button" class="btn btn-s btn-sm" data-act="filtroC" data-f="">Cerrar</button></h3>' + (fl.length ? tablaPedidos(fl) : '<p class="suave" style="margin:0">No hay pedidos en este estado.</p>') + '</div>';
+    }
     s += mapaMesas(c.mapa, true);
     // dónde está cada plato
     s += '<div class="card" style="margin-top:12px"><h3>Dónde está cada plato</h3>' + (c.platos.length ? '<div class="scroll-x"><table class="tabla"><thead><tr><th>Plato</th><th>En cola</th><th>En cocina</th><th>Listo</th><th>En ruta</th><th>Entregado</th></tr></thead><tbody>' + c.platos.map(function (p) {
@@ -225,7 +241,12 @@
     // todos los pedidos
     s += '<div class="card" style="margin-top:12px"><h3>Todos los pedidos de hoy (' + c.pedidos.length + ')</h3>';
     if (!c.pedidos.length) return s + '<p class="suave" style="margin:0">Aún no hay pedidos.</p></div>';
-    s += '<div class="scroll-x"><table class="tabla"><thead><tr><th>#</th><th>Tipo</th><th>Dónde está</th><th>Platos</th><th>Personas</th><th>Total</th><th></th></tr></thead><tbody>' + c.pedidos.slice().reverse().map(function (p) {
+    s += tablaPedidos(c.pedidos.slice().reverse()) + '</div>';
+    return s;
+  }
+  // Tabla de pedidos (la usa "Todos los pedidos de hoy" y el filtro de los contadores)
+  function tablaPedidos(lista) {
+    return '<div class="scroll-x"><table class="tabla"><thead><tr><th>#</th><th>Tipo</th><th>Dónde está</th><th>Platos</th><th>Personas</th><th>Total</th><th></th></tr></thead><tbody>' + lista.map(function (p) {
       var tipo = p.origen === 'mesa' ? '🍽 Mesa ' + p.mesa.numero + ' · ' + U.zonaNombre(p.mesa.zona) : p.tipo === 'domicilio' ? '🛵 Envío<br><small>' + E(p.cliente) + ' · ' + E(p.direccion) + '</small>' : '🛍 Retiro<br><small>' + E(p.cliente) + '</small>';
       var pers = [p.mozo_toma && 'Tomó: ' + E(p.mozo_toma), p.mozo_entrega && 'Sirvió: ' + E(p.mozo_entrega), p.cobrado_por && 'Cobró: ' + E(p.cobrado_por) + ' (' + E(p.cobro_medio) + ')', p.repartidor && 'Reparto: ' + E(p.repartidor)].filter(Boolean).join('<br>') || '—';
       var acc = '';
@@ -235,9 +256,9 @@
       }
       if (p.origen === 'mesa' && !p.pagado && p.estado !== 'cancelado') acc += ' <button class="btn btn-s btn-sm" data-ccobrar="' + E(p.id) + '">Cobrar</button>';
       return '<tr><td class="num"><b>#' + p.numero + '</b></td><td>' + tipo + '</td><td><b>' + E(p.ubicacion) + '</b></td><td>' + p.items.map(function (i) { return i.cantidad + ' × ' + E(i.nombre); }).join('<br>') + '</td><td style="font-size:13px">' + pers + '</td><td class="num">' + U.clp(p.total) + '</td><td style="white-space:nowrap">' + acc + '</td></tr>';
-    }).join('') + '</tbody></table></div></div>';
-    return s;
+    }).join('') + '</tbody></table></div>';
   }
+
 
   /* ================= contraseña ================= */
   function vClave() {
@@ -645,6 +666,7 @@
     else if (d.act === 'copiarTxt') U.copiar(d.t).then(function (ok) { U.toast(ok ? 'Copiado' : 'Cópialo manualmente'); });
     else if (d.act === 'verQR') { var qx = S.enlaces.qr.filter(function (y) { return y.paso === +d.paso; })[0]; direccionPublica().then(function (dir) { modalEnlace(qx, dir); }); }
     else if (d.act === 'qrMesa') { var mq = S.mesas.filter(function (y) { return y.id === +d.id; })[0]; direccionPublica().then(function (dir) { modalQRMesa(mq, dir); }); }
+    else if (d.act === 'filtroC') { S.filtroC = d.f === S.filtroC ? '' : d.f; pintar(); var fc = $('fc'); if (fc && fc.scrollIntoView) fc.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
     else if (d.act === 'zonaTog') {
       var zs = S.zonas.filter(function (z) { return z !== d.z; }); if (t.checked) zs = U.ZONAS.filter(function (z) { return z === d.z || S.zonas.indexOf(z) >= 0; });
       api('/api/admin/mesas/zonas', { metodo: 'PUT', cuerpo: { zonas: zs } }).then(function (r) { if (!r.ok) { t.checked = !t.checked; var e = $('zn_err'); if (e) e.innerHTML = errBloque(r.error); return; } S.zonas = r.data.activas; pintar(); });
@@ -704,10 +726,9 @@
       timer = setInterval(function () { ticks++; if (S.vista === 'tablero') { cargarTablero(); if (ticks % 3 === 0) cargarResumen(); } else if (S.vista === 'control') cargarControl(); }, 5000);
     });
   }
-  var slogo = $('splash-logo'); if (slogo) slogo.innerHTML = U.logo(110, false);
   var splashEl = $('splash'); if (splashEl) {
-    var variante = (new URLSearchParams(location.search).get('splash') || window.LN_SPLASH || 'chef');
-    splashEl.setAttribute('data-variante', ['chef', 'logo', 'icono'].indexOf(variante) >= 0 ? variante : 'chef');
+    var variante = (new URLSearchParams(location.search).get('splash') || window.LN_SPLASH || 'logo');
+    splashEl.setAttribute('data-variante', ['chef', 'logo', 'icono'].indexOf(variante) >= 0 ? variante : 'logo');
   }
   avance(12);
   api('/api/admin/config').then(function (r) { avance(35); if (r.ok) iniciar(); else { pantallaLogin(); avance(100); quitarSplash(); } });
