@@ -36,7 +36,7 @@ h2.titulo{font-size:28px;color:var(--marino);margin-bottom:2px}
 .item-c:last-child{border:0}
 .item-c .r1{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:600}
 .item-c input{margin-top:8px;width:100%;border:1.5px solid var(--borde);border-radius:8px;padding:8px 10px;font-size:13.5px}
-.pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:14px 0 6px;position:relative}
+.pasos{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:14px 0 6px;position:relative}
 .paso{text-align:center;font-size:12px;font-weight:600;color:var(--suave);position:relative}
 .paso i{display:block;width:30px;height:30px;border-radius:50%;margin:0 auto 6px;background:#E3E7EF;color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;position:relative;z-index:1}
 .paso.hecho i{background:var(--ok)}

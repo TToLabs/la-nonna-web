@@ -19,7 +19,7 @@
   }
   function tarjeta(p, boton) {
     var ref = p.cocina_en && datos.paso === 2 && datos.en_cocina && datos.en_cocina.indexOf(p) >= 0 ? p.cocina_en : (datos.paso >= 3 ? p.listo_en : p.solicitado_en), mi = mins(ref), cls = mi < 5 ? 'v' : mi < 10 ? 'a' : 'r';
-    var s = '<article class="t"><div class="cab"><span class="num">#' + p.numero + '</span>' + etiqueta(p) + '<span class="min ' + cls + '">' + mi + ' min</span></div>' + (p.mozo && datos.paso === 2 ? '<div class="suave" style="font-size:14px;margin:-4px 0 6px">Tomó: ' + E(p.mozo) + '</div>' : '') + '<ul>';
+    var s = '<article class="t"><div class="cab"><span class="num">#' + p.numero + '</span>' + etiqueta(p) + '<span class="min ' + cls + '">' + U.duracion(mi) + '</span></div>' + (p.mozo && datos.paso === 2 ? '<div class="suave" style="font-size:14px;margin:-4px 0 6px">Tomó: ' + E(p.mozo) + '</div>' : '') + '<ul>';
     p.items.forEach(function (i) { s += '<li>' + i.cantidad + ' × ' + E(i.nombre) + '</li>' + (i.nota ? '<div class="nota">Nota: ' + E(i.nota) + '</div>' : ''); });
     s += '</ul>' + (p.notas ? '<div class="nota">Pedido: ' + E(p.notas) + '</div>' : '');
     if (datos.paso >= 3) s += '<div class="dat"><b>' + E(p.nombre_cliente) + '</b> · ' + E(p.telefono) + (p.tipo === 'domicilio' ? '<br>' + E(p.direccion) + (p.referencia ? ' (' + E(p.referencia) + ')' : '') : '<br>Retira en el local') + '<br><b>' + U.clp(p.total) + '</b></div>';
@@ -39,7 +39,7 @@
     return '<section class="grupo"><h2>Mapa de mesas</h2><div class="mapa-ley">' + ['verde', 'naranjo', 'rojo', 'lila', 'azul'].map(function (k) { return '<span class="mm-' + k + '">' + NOMC[k] + '</span>'; }).join('') + '</div>' +
       U.ZONAS.map(function (z) {
         var xs = ms.filter(function (m) { return m.zona === z; }); if (!xs.length) return '';
-        return '<h2 style="margin-top:12px">' + U.zonaNombre(z) + '</h2><div class="mapa-m">' + xs.map(function (m) { return '<div class="mm mm-' + m.color + '" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + m.minutos + ' min' : (m.fase_corta || '') + ' · ' + m.minutos + ' min') + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small></div>'; }).join('') + '</div>';
+        return '<h2 style="margin-top:12px">' + U.zonaNombre(z) + '</h2><div class="mapa-m">' + xs.map(function (m) { return '<div class="mm mm-' + m.color + '" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + U.duracion(m.minutos) : (m.fase_corta || '') + ' · ' + U.duracion(m.minutos)) + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small></div>'; }).join('') + '</div>';
       }).join('') + '</section>';
   }
 

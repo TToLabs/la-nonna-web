@@ -128,7 +128,7 @@
   function mins(iso) { return iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 60000)) : 0; }
   function tarjeta(p) {
     var m = mins(p.estado === 'solicitado' ? p.solicitado_en : p.estado === 'en_cocina' ? p.cocina_en : p.listo_en), cls = m < 5 ? 'v' : m < 10 ? 'a' : 'r';
-    var s = '<article class="ped"><div class="cab"><span class="numP num">#' + p.numero_diario + '</span><span class="pill ' + (p.origen === 'mesa' ? 'pill-warn' : p.tipo === 'domicilio' ? 'pill-n' : 'pill-g') + '">' + (p.origen === 'mesa' ? '🍽 ' + E(p.nombre_cliente) : p.tipo === 'domicilio' ? (p.ruta_en ? '🛵 En ruta' : 'Despacho') : 'Retiro') + '</span><span class="espera ' + cls + ' num">' + m + ' min</span></div><div style="font-weight:600">' + E(p.nombre_cliente) + '</div><ul>';
+    var s = '<article class="ped"><div class="cab"><span class="numP num">#' + p.numero_diario + '</span><span class="pill ' + (p.origen === 'mesa' ? 'pill-warn' : p.tipo === 'domicilio' ? 'pill-n' : 'pill-g') + '">' + (p.origen === 'mesa' ? '🍽 ' + E(p.nombre_cliente) : p.tipo === 'domicilio' ? (p.ruta_en ? '🛵 En ruta' : 'Despacho') : 'Retiro') + '</span><span class="espera ' + cls + ' num">' + U.duracion(m) + '</span></div><div style="font-weight:600">' + E(p.nombre_cliente) + '</div><ul>';
     p.items.forEach(function (i) { s += '<li>' + i.cantidad + ' × ' + E(i.nombre) + '</li>' + (i.nota ? '<div class="nota">Nota: ' + E(i.nota) + '</div>' : ''); });
     s += '</ul>' + (p.notas ? '<div class="nota">Pedido: ' + E(p.notas) + '</div>' : '');
     if (p.estado === 'listo') s += '<div class="dat">Tel: ' + E(p.telefono) + (p.tipo === 'domicilio' ? '<br>' + E(p.direccion) + (p.referencia ? ' (' + E(p.referencia) + ')' : '') : '<br>Retira en el local') + '<br><b class="num">Total ' + U.clp(p.total) + '</b></div>';
@@ -166,7 +166,7 @@
       U.ZONAS.map(function (z) {
         var ms = mapa.filter(function (m) { return m.zona === z; }); if (!ms.length) return '';
         return '<div class="suave" style="font-size:12px;font-weight:700;margin:10px 0 6px">' + U.zonaNombre(z).toUpperCase() + '</div><div class="mapa-m">' + ms.map(function (m) {
-          return '<div class="mm mm-' + m.color + '" data-cmesa="' + m.id + '" role="button" tabindex="0" style="cursor:pointer" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + m.minutos + ' min' : (m.fase_corta || '') + ' · ' + m.minutos + ' min') + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small>' + (admin && m.color === 'azul' ? '<button class="btn btn-s btn-sm" data-climpia="' + m.id + '">Limpia</button>' : '') + '</div>';
+          return '<div class="mm mm-' + m.color + '" data-cmesa="' + m.id + '" role="button" tabindex="0" style="cursor:pointer" title="' + E(m.motivo || m.fase_texto || NOMC[m.color]) + '"><b>' + m.numero + '</b><small>' + (m.color === 'verde' ? 'libre' : m.color === 'azul' ? 'por limpiar · ' + U.duracion(m.minutos) : (m.fase_corta || '') + ' · ' + U.duracion(m.minutos)) + (m.personas > 1 ? ' · 👥' + m.personas : '') + '</small>' + (admin && m.color === 'azul' ? '<button class="btn btn-s btn-sm" data-climpia="' + m.id + '">Limpia</button>' : '') + '</div>';
         }).join('') + '</div>';
       }).join('') + '</div>';
   }
@@ -177,16 +177,16 @@
       var m = r.data.mesa, hora = function (t) { return new Date(t).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false }); };
       var NOMC = { verde: 'Libre', naranjo: 'Esperando / atendido', rojo: 'Demorada', lila: 'Comiendo', azul: 'Pagó · por limpiar' };
       var EST = { solicitado: 'En cola', en_cocina: 'En cocina', listo: 'Listo', entregado: 'Servido', cancelado: 'Cancelado' };
-      var s = '<h3 class="titulo" style="font-size:26px;margin-bottom:4px">Mesa ' + m.numero + ' · ' + U.zonaNombre(m.zona) + '</h3><div class="mapa-ley" style="margin-bottom:10px"><span class="mm-' + m.color + '">' + ((m.color === 'naranjo' || m.color === 'lila') && m.fase_texto ? m.fase_texto : NOMC[m.color]) + (m.color !== 'verde' ? ' · ' + m.minutos + ' min' : '') + '</span>' + (m.motivo ? '<span style="color:var(--texto)">' + E(m.motivo) + '</span>' : '') + '</div>';
+      var s = '<h3 class="titulo" style="font-size:26px;margin-bottom:4px">Mesa ' + m.numero + ' · ' + U.zonaNombre(m.zona) + '</h3><div class="mapa-ley" style="margin-bottom:10px"><span class="mm-' + m.color + '">' + ((m.color === 'naranjo' || m.color === 'lila') && m.fase_texto ? m.fase_texto : NOMC[m.color]) + (m.color !== 'verde' ? ' · ' + U.duracion(m.minutos) : '') + '</span>' + (m.motivo ? '<span style="color:var(--texto)">' + E(m.motivo) + '</span>' : '') + '</div>';
       if (m.alerta) {
-        s += '<div class="err-bloque" style="margin:0 0 10px"><b>⚠ Demorada: ' + E(m.alerta.proceso) + '</b><br>Lleva <b>' + m.alerta.minutos + ' min</b> en este proceso y el límite que fijaste es de <b>' + m.alerta.limite + ' min</b> (se pasó por ' + (m.alerta.minutos - m.alerta.limite) + ' min).' +
+        s += '<div class="err-bloque" style="margin:0 0 10px"><b>⚠ Demorada: ' + E(m.alerta.proceso) + '</b><br>Lleva <b>' + U.duracion(m.alerta.minutos) + '</b> en este proceso y el límite que fijaste es de <b>' + U.duracion(m.alerta.limite) + '</b> (se pasó por ' + U.duracion(m.alerta.minutos - m.alerta.limite) + ').' +
           (m.fase === 'comiendo' ? '<br>Revisa si ya terminó y espera la cuenta, o si quiere pedir algo más (con un pedido nuevo el reloj parte de nuevo).' : '') + '</div>';
       } else if (m.fase && m.fase !== 'libre' && m.limite > 0) {
-        s += '<div class="info-bloque" style="margin:0 0 10px">Va <b>' + m.minutos + ' min</b> en este proceso (' + E(m.fase_texto || '') + '); alerta a los ' + m.limite + ' min.</div>';
+        s += '<div class="info-bloque" style="margin:0 0 10px">Va <b>' + U.duracion(m.minutos) + '</b> en este proceso (' + E(m.fase_texto || '') + '); alerta a los ' + U.duracion(m.limite) + '.</div>';
       }
       s += '<h4 style="margin:8px 0 4px">Proceso de hoy</h4>' + (r.data.momentos.length ? '<ol class="linea-t">' + r.data.momentos.map(function (x, i, arr) {
         var dif = i ? Math.round((Date.parse(x.t) - Date.parse(arr[i - 1].t)) / 60000) : null;
-        return '<li><b>' + hora(x.t) + '</b> ' + E(x.que) + (x.quien ? ' · <i>' + E(x.quien) + '</i>' : '') + (dif !== null ? ' <span class="suave">(+' + dif + ' min)</span>' : '') + '</li>';
+        return '<li><b>' + hora(x.t) + '</b> ' + E(x.que) + (x.quien ? ' · <i>' + E(x.quien) + '</i>' : '') + (dif !== null ? ' <span class="suave">(+' + U.duracion(dif) + ')</span>' : '') + '</li>';
       }).join('') + '</ol>' : '<p class="suave" style="margin:0">Sin movimiento hoy.</p>');
       s += '<h4 style="margin:12px 0 4px">Pedidos</h4>' + (r.data.pedidos.map(function (p) {
         var acc = '';
@@ -199,7 +199,7 @@
       abrirModal(s, true);
     });
   }
-  var mn = function (v) { return v == null ? '—' : String(v).replace('.', ',') + ' min'; };
+  var mn = function (v) { return v == null ? '—' : U.duracion(v); };
   function vControl() {
     var c = S.control;
     if (!c) return S.errorVista ? errBloque(S.errorVista) : '<div class="cargando" aria-busy="true"><i></i><i></i></div>';
@@ -271,7 +271,7 @@
     var hs = Object.keys(d.por_hora).map(Number), h0 = Math.min.apply(null, [11].concat(hs)), h1 = Math.max.apply(null, [16].concat(hs));
     var hmax = Math.max.apply(null, [1].concat(hs.map(function (h) { return d.por_hora[h]; })));
     var tl = d.top_platos.slice(0, 6), tm = tl.length ? tl[0].cantidad : 1, t = d.pedidos_pagados;
-    var prom = function (v) { return v == null ? '—' : v + ' min'; };
+    var prom = function (v) { return v == null ? '—' : U.duracion(v); };
     var s = '<div class="nav-sem"><label class="campo" style="margin:0;display:flex;gap:8px;align-items:center">Fecha<input type="date" id="d_fecha" value="' + E(d.fecha) + '" style="margin:0;width:auto"></label></div>';
     s += '<div class="kpis"><div class="card kpi"><div class="l">Ventas</div><div class="v num">' + U.clp(d.ventas) + '</div></div><div class="card kpi"><div class="l">Pedidos pagados</div><div class="v num">' + t + '</div></div><div class="card kpi"><div class="l">Ticket promedio</div><div class="v num">' + U.clp(d.ticket_promedio) + '</div></div><div class="card kpi"><div class="l">Cancelados</div><div class="v num">' + d.cancelados + '</div></div></div>';
     s += '<div class="g2"><div class="card"><h3>Pedidos por hora</h3><div class="hbars" role="img" aria-label="Pedidos por hora">';

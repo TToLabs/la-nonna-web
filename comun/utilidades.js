@@ -37,5 +37,10 @@
   /* Zonas posibles de un local; el dueño elige cuáles tiene (Admin ☰ → Mesas). */
   var ZONAS = ['comedor', 'patio', 'piso1', 'piso2'], ZONA_NOM = { comedor: 'Comedor', patio: 'Patio', piso1: 'Primer piso', piso2: 'Segundo piso' };
   function zonaNombre(z) { return ZONA_NOM[z] || 'Comedor'; }
-  w.U = { ZONAS: ZONAS, zonaNombre: zonaNombre, clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
+  /* Duraciones siempre en minutos y horas: 45 min · 2 h · 6 h 30 min (nunca "390 min"). */
+  function duracion(min) {
+    var v = Number(min) || 0; if (v < 60) return (Math.round(v) === v ? v : String(Math.round(v * 10) / 10).replace('.', ',')) + ' min';
+    var m = Math.round(v), h = Math.floor(m / 60), r = m % 60; return h + ' h' + (r ? ' ' + r + ' min' : '');
+  }
+  w.U = { duracion: duracion, ZONAS: ZONAS, zonaNombre: zonaNombre, clp: clp, esc: esc, fechaLarga: fechaLarga, fechaCorta: fechaCorta, sumarDias: sumarDias, partes: partes, toast: toast, beep: beep, platoArte: platoArte, logo: logo, copiar: copiar, MESES: MESES };
 })(window);

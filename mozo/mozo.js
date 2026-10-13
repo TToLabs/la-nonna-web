@@ -21,7 +21,7 @@
       s += '<div class="m-zona">' + U.zonaNombre(z) + '</div><div class="m-mesas">' + ms.map(function (x) {
         var ps = D.pedidos.filter(function (p) { return p.mesa && p.mesa.numero === x.numero; }), hay = ps.length, lista = ps.some(function (p) { return p.estado === 'listo'; }), esp = D.esperando.indexOf(x.id) >= 0;
         var mp = (D.mapa || []).filter(function (q) { return q.id === x.id; })[0] || { color: 'verde', minutos: 0 };
-        return '<button data-mesa="' + x.id + '" class="mm mm-' + mp.color + '" aria-pressed="' + (mesa === x.id) + '">' + x.numero + '<small>' + (mp.color === 'azul' ? 'por limpiar' : mp.color === 'verde' ? 'libre' : mp.fase_corta) + (mp.color !== 'verde' ? ' · ' + mp.minutos + ' min' : '') + (mp.personas > 1 ? ' · 👥' + mp.personas : '') + '</small></button>';
+        return '<button data-mesa="' + x.id + '" class="mm mm-' + mp.color + '" aria-pressed="' + (mesa === x.id) + '">' + x.numero + '<small>' + (mp.color === 'azul' ? 'por limpiar' : mp.color === 'verde' ? 'libre' : mp.fase_corta) + (mp.color !== 'verde' ? ' · ' + U.duracion(mp.minutos) : '') + (mp.personas > 1 ? ' · 👥' + mp.personas : '') + '</small></button>';
       }).join('') + '</div>';
     });
     if (!D.mesas.length) return '<div class="m-vacio">El local aún no cargó las mesas. Se hace en Admin → Configuración.</div>';

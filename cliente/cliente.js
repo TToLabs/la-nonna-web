@@ -14,8 +14,8 @@
     else { var g = L.leerLocal('ln_c_mesa', null); if (g && g.fecha === hoyCL) S.mesa = g; }
   })();
   var firmaVista = '', ticks = 0;
-  var ETAPAS = [['solicitado', 'Recibido'], ['en_cocina', 'En cocina'], ['listo', 'Listo'], ['entregado', 'Entregado']];
-  var MSG = { solicitado: 'Recibimos tu pedido y está en la cola.', en_cocina: 'Estamos preparando tu pedido.', listo: 'Tu pedido está listo.', entregado: 'Pedido entregado. Gracias por elegirnos.' };
+  var ETAPAS = [['solicitado', 'Recibido'], ['en_cocina', 'En preparación'], ['listo', 'Listo'], ['entregado', 'Entregado']];
+  var MSG = { solicitado: 'Recibimos tu pedido y ya está ingresado.', en_cocina: 'Estamos preparando tu pedido.', listo: 'Tu pedido está listo.', en_camino: 'Tu pedido va en camino.', entregado: 'Pedido entregado. Gracias por elegirnos.' };
 
   var imgUrl = function (u) { return (window.LN_API_BASE || '') + '/' + u; };
   var local = function () { return (S.menu && S.menu.local) || { nombre: 'La Nonna Restaurante', horario: '', categorias: [], fidelidad: {} }; };
@@ -256,12 +256,14 @@
 
   /* ---------- SEGUIMIENTO ---------- */
   function restante(p) { return p && p.expira_en ? Math.max(0, Date.parse(p.expira_en) - Date.now()) : 0; }
-  function mmss(ms) { var m = Math.floor(ms / 60000), s = Math.floor(ms % 60000 / 1000); return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+  function mmss(ms) { var h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000), s = Math.floor(ms % 60000 / 1000); return (h ? h + ':' : '') + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }   // con horas: 1:05:09
   function vSeguim() {
     var p = S.pedido;
     if (!S.pedidoId) return '<div class="vacio"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p>Aún no tienes un pedido en curso.</p><button class="btn btn-p" data-act="irmenu">Ir al menú</button></div>';
     if (!p) return S.errorPedido ? bloqueError(S.errorPedido, 'recargarPedido') : '<div class="cargando" aria-busy="true"><i></i><i></i></div>';
-    var s = '', idx = ETAPAS.map(function (e) { return e[0]; }).indexOf(p.estado);
+    // Envío a domicilio: un paso más, "En camino" (el repartidor ya lo retiró)
+    var etapas = p.tipo === 'domicilio' ? ETAPAS.slice(0, 3).concat([['en_camino', 'En camino']], ETAPAS.slice(3)) : ETAPAS;
+    var s = '', idx = etapas.map(function (e) { return e[0]; }).indexOf(p.en_camino ? 'en_camino' : p.estado);
     s += '<p class="sub" style="margin:0">Pedido</p><div class="nped titulo">' + (p.numero ? '#' + p.numero : 'por pagar') + '</div><div style="margin:8px 0 2px"><span class="pill pill-n">' + (p.tipo === 'domicilio' ? 'Envío a domicilio' : 'Retiro en local') + '</span></div>';
     if (p.estado === 'pendiente_pago') {
       s += '<div class="card" style="margin-top:12px;text-align:center"><div class="suave" style="font-size:13px">Falta pagar</div><div class="num" style="font-size:34px;font-weight:700">' + U.clp(p.total) + '</div><div class="cuenta num" id="cta">' + mmss(restante(p)) + '</div><p class="sub" style="margin:-4px 0 12px">Tiempo restante: pasado ese plazo el pedido se anula y se liberan los platos.</p><button class="btn btn-p btn-bloque" data-act="pagarAhora">Pagar (modo de prueba)</button><p class="sub" style="margin:8px 0 0;font-size:12px">El pago real con Mercado Pago aún no está conectado.</p></div>';
@@ -270,8 +272,8 @@
     } else if (p.estado === 'cancelado') {
       s += '<div class="err-bloque" style="margin-top:12px"><b>Pedido cancelado por el local.</b> Si ya pagaste, te contactaremos para el reembolso.</div>';
     } else {
-      s += '<div class="pasos">' + ETAPAS.map(function (e, i) { return '<div class="paso ' + (i < idx ? 'hecho' : i === idx ? 'act' : '') + '"><i>' + (i < idx ? '✓' : i + 1) + '</i>' + e[1] + '</div>'; }).join('') + '</div>';
-      s += '<div class="card" style="margin-top:12px"><b>' + MSG[p.estado] + '</b>' + (p.estado === 'listo' ? '<p class="sub" style="margin:4px 0 0">' + (p.tipo === 'domicilio' ? 'Sale en breve a tu dirección.' : 'Puedes pasar a retirarlo.') + '</p>' : '') + '</div>';
+      s += '<div class="pasos">' + etapas.map(function (e, i) { return '<div class="paso ' + (i < idx ? 'hecho' : i === idx ? 'act' : '') + '"><i>' + (i < idx ? '✓' : i + 1) + '</i>' + (e[0] === 'listo' ? (p.tipo === 'domicilio' ? 'Listo para enviar' : 'Listo para retirar') : e[1]) + '</div>'; }).join('') + '</div>';
+      s += '<div class="card" style="margin-top:12px"><b>' + (p.en_camino ? MSG.en_camino : MSG[p.estado]) + '</b>' + (p.estado === 'listo' && !p.en_camino ? '<p class="sub" style="margin:4px 0 0">' + (p.tipo === 'domicilio' ? 'Sale en breve a tu dirección.' : 'Puedes pasar a retirarlo.') + '</p>' : '') + '</div>';
       if (p.codigo && p.estado !== 'entregado' && window.qrcode) {
         var q = window.qrcode(0, 'M'); q.addData(p.codigo); q.make();
         s += '<div class="card qr-cli" style="margin-top:12px;text-align:center"><b>Tu código de ' + (p.tipo === 'domicilio' ? 'entrega' : 'retiro') + '</b><p class="sub" style="margin:4px 0 8px">' + (p.tipo === 'domicilio' ? 'Muéstralo al repartidor cuando llegue: él lo escanea para confirmar la entrega.' : 'Muéstralo en el local al retirar: lo escanean para entregarte el pedido.') + '</p>' + q.createImgTag(6, 8) + '<div class="num" style="font-size:22px;font-weight:700;letter-spacing:3px;margin-top:6px">' + U.esc(p.codigo) + '</div></div>';
@@ -398,7 +400,7 @@
   }
   function firma() {
     if (S.tab === 'menu') return JSON.stringify([platos().map(function (p) { return [p.id, p.disponibles, p.precio]; }), local().pedidos_abiertos, S.carrito, S.verSemana, S.mesaInfo, !!S.cliente]);
-    if (S.tab === 'seguim') return JSON.stringify([S.pedido && [S.pedido.estado, S.pedido.numero], S.pedidoId]);
+    if (S.tab === 'seguim') return JSON.stringify([S.pedido && [S.pedido.estado, S.pedido.numero, S.pedido.en_camino], S.pedidoId]);
     return 'x';
   }
   function ir(t) {
